@@ -111,6 +111,8 @@ class PlayerActivity : AppCompatActivity() {
 
     private var isLocked = false
 
+    private var isControllerVisible = false
+
     private val broadcastReceiver: BroadcastReceiver =
         object : BroadcastReceiver() {
 
@@ -397,6 +399,8 @@ class PlayerActivity : AppCompatActivity() {
             )
 
             setControllerVisibilityListener {
+
+                isControllerVisible = (it == View.VISIBLE)
 
                 setChannelInformation(
                     it == View.VISIBLE
@@ -773,8 +777,7 @@ class PlayerActivity : AppCompatActivity() {
 
         if (
             visible ==
-            bindingRoot.playerView
-                .isControllerVisible
+            isControllerVisible
         ) {
             return
         }
@@ -805,8 +808,7 @@ class PlayerActivity : AppCompatActivity() {
         handlerInfo?.postDelayed({
 
             if (
-                bindingRoot.playerView
-                    .isControllerVisible
+                isControllerVisible
             ) {
                 return@postDelayed
             }
@@ -2790,8 +2792,7 @@ class PlayerActivity : AppCompatActivity() {
     ): Boolean {
 
         if (
-            !bindingRoot.playerView
-                .isControllerVisible &&
+            !isControllerVisible &&
             keyCode ==
             KeyEvent.KEYCODE_DPAD_CENTER
         ) {
@@ -2902,8 +2903,7 @@ class PlayerActivity : AppCompatActivity() {
 
 
         if (
-            bindingRoot.playerView
-                .isControllerVisible
+            isControllerVisible
         ) {
 
             return super.onKeyUp(
