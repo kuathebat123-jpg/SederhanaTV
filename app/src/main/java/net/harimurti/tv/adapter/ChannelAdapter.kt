@@ -9,11 +9,13 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
-import net.harimurti.tv.BR
 import net.harimurti.tv.MainActivity
 import net.harimurti.tv.PlayerActivity
 import net.harimurti.tv.R
 import net.harimurti.tv.databinding.ItemChannelBinding
+import net.harimurti.tv.extension.insert
+import net.harimurti.tv.extension.remove
+import net.harimurti.tv.extension.save
 import net.harimurti.tv.extension.startAnimation
 import net.harimurti.tv.model.Channel
 import net.harimurti.tv.model.PlayData
@@ -39,7 +41,6 @@ interface ChannelClickListener {
     )
 }
 
-
 class ChannelAdapter(
     private val channels: ArrayList<Channel>?,
     private val catId: Int,
@@ -49,24 +50,20 @@ class ChannelAdapter(
 
     lateinit var context: Context
 
-
     class ViewHolder(
         var itemChBinding: ItemChannelBinding
     ) : RecyclerView.ViewHolder(
         itemChBinding.root
     ) {
 
-        fun bind(obj: Any?) {
+        fun bind(obj: Channel?) {
 
-            itemChBinding.setVariable(
-                BR.modelChannel,
+            itemChBinding.modelChannel =
                 obj
-            )
 
             itemChBinding.executePendingBindings()
         }
     }
-
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -87,7 +84,6 @@ class ChannelAdapter(
         return ViewHolder(binding)
     }
 
-
     override fun onBindViewHolder(
         viewHolder: ViewHolder,
         position: Int
@@ -95,6 +91,10 @@ class ChannelAdapter(
 
         val channel =
             channels?.getOrNull(position)
+
+        if (channel == null) {
+            return
+        }
 
         viewHolder.bind(channel)
 
@@ -108,11 +108,9 @@ class ChannelAdapter(
             this
     }
 
-
     override fun getItemCount(): Int {
         return channels?.size ?: 0
     }
-
 
     override fun onClicked(
         ch: Channel,
@@ -136,7 +134,6 @@ class ChannelAdapter(
 
         context.startActivity(intent)
     }
-
 
     override fun onLongClicked(
         ch: Channel,
@@ -167,7 +164,6 @@ class ChannelAdapter(
                 sendBroadcast(false)
             }
 
-
             Toast.makeText(
                 context,
                 String.format(
@@ -187,7 +183,6 @@ class ChannelAdapter(
             if (result) {
                 sendBroadcast(true)
             }
-
 
             val message =
                 if (result) {
@@ -209,7 +204,6 @@ class ChannelAdapter(
                     )
                 }
 
-
             Toast.makeText(
                 context,
                 message,
@@ -217,12 +211,10 @@ class ChannelAdapter(
             ).show()
         }
 
-
         fav.save()
 
         return true
     }
-
 
     override fun onFocusChanged(
         v: View,
@@ -231,7 +223,6 @@ class ChannelAdapter(
 
         v.startAnimation(hasFocus)
     }
-
 
     private fun sendBroadcast(
         isInserted: Boolean
@@ -246,7 +237,6 @@ class ChannelAdapter(
 
                 MainActivity.REMOVE_FAVORITE
             }
-
 
         LocalBroadcastManager
             .getInstance(context)
