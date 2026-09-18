@@ -12,7 +12,6 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
-import net.harimurti.tv.BR
 import net.harimurti.tv.MainActivity
 import net.harimurti.tv.PlayerActivity
 import net.harimurti.tv.R
@@ -30,11 +29,10 @@ class SearchAdapter (val channels: ArrayList<Channel>, private val listdata: Arr
 
     class ViewHolder(var itemChBinding: ItemChannelBinding) :
         RecyclerView.ViewHolder(itemChBinding.root) {
-        fun bind(obj: Any?) {
-            itemChBinding.setVariable(BR.modelChannel, obj)
+        fun bind(obj: Channel?) {
+            itemChBinding.modelChannel = obj
             itemChBinding.executePendingBindings()
         }
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         context = parent.context
