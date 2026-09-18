@@ -1,0 +1,111 @@
+<resources>
+    <string name="app_name" translatable="false">Nonton TV</string>
+
+    <!-- json link -->
+    <string name="website" translatable="false">https://github.com/hariimurti/NontonTV</string>
+    <string name="telegram_group" translatable="false">https://t.me/paijemdev</string>
+    <string name="iptv_playlist" translatable="false">https://iptv-org.github.io/iptv/countries/%s.m3u</string>
+    <string name="json_release" translatable="false">https://github.com/hariimurti/NontonTV/raw/master/json/release.json</string>
+    <string name="apk_release" translatable="false">https://github.com/hariimurti/NontonTV/releases/download/%s/net.harimurti.tv_%s_b%d.apk</string>
+    <string name="gh_contributors" translatable="false">https://api.github.com/repos/hariimurti/NontonTV/contributors</string>
+    <string name="main_contributors" translatable="false">harimurti, madbulls</string>
+
+    <!-- some text -->
+    <string name="text_presents">.: PaijemDev Presents :.</string>
+    <string name="app_tagline_one">Free - OpenSource - No Ads,</string>
+    <string name="app_tagline_two">Light - Simple - Minimalist</string>
+    <string name="thanks_to">Thanks To :</string>
+    <string name="thanks_for_support">iptv-org for playlist and people who support this project 😘</string>
+    <string name="btn_retry">Retry</string>
+    <string name="btn_retry_count">Retry (%d)</string>
+    <string name="btn_close">Close</string>
+    <string name="no_network">No internet connection!</string>
+    <string name="press_back_twice_exit_app">Press again to exit the app!</string>
+    <string name="press_back_twice_exit_player">Press again to exit the player!</string>
+    <string name="track_selection_title">Select tracks</string>
+    <string name="error_unsupported">Media includes %s tracks, but none are playable by this device</string>
+    <string name="playback_speed">Playback Speed</string>
+    <string name="speed_0_25">0.25</string>
+    <string name="speed_0_5">0.5</string>
+    <string name="speed_0_75">0.75</string>
+    <string name="speed_normal">Normal</string>
+    <string name="speed_1_25">1.25</string>
+    <string name="speed_1_5">1.5</string>
+    <string name="speed_1_75">1.75</string>
+    <string name="speed_2">2</string>
+    <string name="screen_size">Screen Size</string>
+    <string name="mode_fit">Fit (default)</string>
+    <string name="mode_fixed_width">Fixed Width</string>
+    <string name="mode_fixed_height">Fixed Height</string>
+    <string name="mode_fill">Fill</string>
+    <string name="mode_zoom">Zoom</string>
+    <string name="must_allow_permissions">You must allow all permission requests for this app to work properly!</string>
+    <string name="search_channel">Search Channel</string>
+    <string name="name_channel">Name Channel</string>
+    <string name="top_category">No more categories above this</string>
+    <string name="bottom_category">No more categories below</string>
+    <string name="playlist_cant_be_parsed">Playlist doesn\'t exist, can\'t be parsed?</string>
+    <string name="btn_next_channel">Next Channel</string>
+    <string name="player_error_message">Code : %s\nCodeName : %s\nError Message : %s</string>
+    <string name="device_not_support_drm">Your device does not support DRM %s!</string>
+    <string name="favorite_channel">Favorite Channel</string>
+    <string name="removed_from_favorite">%s has been removed from Favorite</string>
+    <string name="added_into_favorite">%s has been added into Favorite</string>
+    <string name="already_in_favorite">%s is already in Favorite</string>
+    <string name="status_checking_permission">status: checking permission…</string>
+    <string name="status_checking_new_update">status: checking updates…</string>
+    <string name="status_preparing_playlist">status: preparing playlist…</string>
+    <string name="alert_first_time" translatable="false">For those who bought this app, please ask the seller to refund your money. This app is FREE!!!\n
+        \n-- -- -- --\nBagi anda yang membeli aplikasi ini, mintalah penjual untuk mengembalikan uang anda. Aplikasi ini GRATIS!!!</string>
+
+    <!-- alert playlist -->
+    <string name="playlist_updated">Playlist has been updated!</string>
+    <string name="alert_title_playlist_error" translatable="false">Playlist Error</string>
+    <string name="dialog_retry">Try again</string>
+    <string name="dialog_cached">Use cache</string>
+    <string name="player_playback_error">Playback Error</string>
+    <string name="player_no_playlist">We have problem with the playlist</string>
+    <string name="player_no_channel">No channels to play</string>
+    <string name="player_playdata_error">Can\'t process play data</string>
+
+    <!-- alert update -->
+    <string name="alert_new_update">Update</string>
+    <string name="dialog_download">Download APK</string>
+    <string name="dialog_ignore">Ignore</string>
+    <string name="message_update">Version\n• Installed : v%s (%d)\n• Latest : %s (%d)\n\nChanges :</string>
+    <string name="message_update_changelog" translatable="false">\n• %s</string>
+    <string name="message_update_no_changelog">\n• others</string>
+
+    <!-- settings -->
+    <string name="settings">Preferences</string>
+    <string name="startup">Startup</string>
+    <string name="launch_at_boot">Run App on Boot</string>
+    <string name="play_last_watched">Play Last Watched</string>
+    <string name="playlist">Playlist</string>
+    <string name="sort_favorite">Sort Favorite</string>
+    <string name="sort_category">Sort Category</string>
+    <string name="sort_channel">Sort Channel</string>
+    <string name="player">Player</string>
+    <string name="optimize_prebuffer">Optimize Prebuffer</string>
+    <string name="reverse_player_navigation">Reverse DPAD Navigation</string>
+    <string name="tab_about">About</string>
+    <string name="tab_sources">Playlist</string>
+    <string name="tab_app">Application</string>
+    <string name="input_url">Link URL</string>
+    <string name="show_hidden" translatable="false">Hidden</string>
+    <string name="title_select_file_json">Select File Json</string>
+    <string name="default_playlist" translatable="false">IPTV-ORG ( %s )</string>
+    <string name="null_playlist">No playlists that can be displayed. Check your settings!</string>
+    <string name="checking_url">checking url…</string>
+    <string name="link_error">Link Error!</string>
+    <string name="link_copied_to_clipboard">Link copied to clipboard!</string>
+    <string name="warning_none_source_active">No active source, default will be enabled!</string>
+    <string name="more_information">More Information :</string>
+    <string name="button_website" translatable="false">Website</string>
+    <string name="button_telegram" translatable="false">Telegram</string>
+    <string name="indonesia" translatable="false">Indonesia</string>
+    <string name="japan" translatable="false">Japan</string>
+    <string name="malaysia" translatable="false">Malaysia</string>
+    <string name="singapore" translatable="false">Singapore</string>
+    <string name="south_korea" translatable="false">South Korea</string>
+</resources>
