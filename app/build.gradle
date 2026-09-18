@@ -1,32 +1,13 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-parcelize'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.plugin.parcelize'
+}
 
 def media3_version = '1.11.1'
 
 android {
-    namespace 'net.harimurti.tv'
+    namespace = 'net.harimurti.tv'
 
-    def versionProps = new Properties()
-    def versionPropsFile = file('version.prop')
-    def versionPropsCode = 1
-
-    if (versionPropsFile.exists() && versionPropsFile.canRead()) {
-        versionPropsFile.withInputStream { stream ->
-            versionProps.load(stream)
-        }
-
-        versionPropsCode =
-                (versionProps['VERSION_CODE'] ?: '1').toInteger()
-    }
-
-    /*
-     * Android SDK
-     *
-     * compileSdk harus didefinisikan secara eksplisit
-     * agar kompatibel dengan Android Gradle Plugin baru.
-     */
     compileSdk = 37
 
     defaultConfig {
@@ -35,7 +16,7 @@ android {
         minSdk = 23
         targetSdk = 37
 
-        versionCode = versionPropsCode
+        versionCode = 1
         versionName = '3.0.0'
 
         multiDexEnabled = true
@@ -48,33 +29,25 @@ android {
                 'androidx.test.runner.AndroidJUnitRunner'
     }
 
-    /*
-     * Java 17
-     */
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    /*
-     * Kotlin JVM 17
-     */
-    kotlinOptions {
-        jvmTarget = '17'
+    kotlin {
+        jvmToolchain(17)
     }
 
-    /*
-     * Data Binding + View Binding
-     */
     buildFeatures {
         dataBinding = true
         viewBinding = true
     }
 
-    /*
-     * Release
-     */
     buildTypes {
+        debug {
+            minifyEnabled = false
+        }
+
         release {
             minifyEnabled = false
 
@@ -86,30 +59,16 @@ android {
             )
         }
     }
-
-    /*
-     * APK name
-     *
-     * Menggunakan applicationVariants di luar buildTypes
-     * supaya konfigurasi tidak bercampur dengan release block.
-     */
-    applicationVariants.all { variant ->
-
-        variant.outputs.all { output ->
-
-            outputFileName =
-                    "${defaultConfig.applicationId}" +
-                    "_v${defaultConfig.versionName}" +
-                    "_b${defaultConfig.versionCode}.apk"
-        }
-    }
 }
 
 dependencies {
 
     /*
-     * Local JAR libraries
+     * ==========================================================
+     * LOCAL JAR
+     * ==========================================================
      */
+
     implementation fileTree(
             dir: 'libs',
             include: ['*.jar']
@@ -117,8 +76,11 @@ dependencies {
 
 
     /*
-     * AndroidX
+     * ==========================================================
+     * ANDROIDX
+     * ==========================================================
      */
+
     implementation 'androidx.appcompat:appcompat:1.7.1'
 
     implementation 'androidx.preference:preference-ktx:1.2.1'
@@ -127,29 +89,31 @@ dependencies {
 
 
     /*
-     * Material
+     * ==========================================================
+     * MATERIAL
+     * ==========================================================
      */
+
     implementation 'com.google.android.material:material:1.13.0'
 
 
     /*
-     * Network
+     * ==========================================================
+     * NETWORK
+     * ==========================================================
      */
+
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
 
 
     /*
      * ==========================================================
-     * ANDROIDX MEDIA3
+     * MEDIA3
      * ==========================================================
      *
      * Media3 1.11.1
-     *
-     * ExoPlayer
-     * DASH
-     * RTSP
-     * Player UI
      */
+
     implementation "androidx.media3:media3-exoplayer:${media3_version}"
 
     implementation "androidx.media3:media3-exoplayer-dash:${media3_version}"
@@ -160,44 +124,58 @@ dependencies {
 
 
     /*
-     * Google
+     * ==========================================================
+     * GOOGLE
+     * ==========================================================
      */
+
     implementation 'com.google.android.gms:play-services-auth:19.2.0'
 
 
     /*
-     * JSON
+     * ==========================================================
+     * GSON
+     * ==========================================================
      */
+
     implementation 'com.google.code.gson:gson:2.13.1'
 
 
     /*
-     * File picker
+     * ==========================================================
+     * FILE PICKER
+     * ==========================================================
      */
+
     implementation 'com.github.TutorialsAndroid:FilePicker:v8.0.19'
 
 
     /*
-     * Shimmer
+     * ==========================================================
+     * SHIMMER
+     * ==========================================================
      */
+
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
 
 
     /*
-     * Vertical SeekBar
+     * ==========================================================
+     * VERTICAL SEEKBAR
+     * ==========================================================
      */
+
     implementation 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:1.0.0'
 
 
     /*
-     * Unit test
+     * ==========================================================
+     * TEST
+     * ==========================================================
      */
+
     testImplementation 'junit:junit:4.13.2'
 
-
-    /*
-     * Android instrumentation test
-     */
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
 
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
