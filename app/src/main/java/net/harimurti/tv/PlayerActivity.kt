@@ -1021,19 +1021,23 @@ class PlayerActivity : AppCompatActivity() {
      *  - Accept
      *  - Cookie otomatis dari CookieManager
      *
-     * Semua header ini juga akan otomatis dipakai oleh
-     * request manifest, segmen video, DAN license server
-     * (karena httpDataSourceFactory yang sama diberikan
-     * ke HttpMediaDrmCallback).
+     * Safety net: strip prefix "http-user-agent=" dan
+     * "http_user_agent=" dari field ua, jika tidak sengaja
+     * tersimpan di playlist JSON.
      * ============================================================
      */
 
     private fun createHttpDataSourceFactory():
             DefaultHttpDataSource.Factory {
 
-        val userAgent =
+        val rawUa =
             current?.userAgent
+                ?.removePrefix("http-user-agent=")
+                ?.removePrefix("http_user_agent=")
                 ?.trim()
+
+        val userAgent =
+            rawUa
                 ?.takeIf { it.isNotBlank() }
                 ?: "NontonTV/${BuildConfig.VERSION_NAME} " +
                         "(Android ${Build.VERSION.RELEASE})"
@@ -1048,34 +1052,37 @@ class PlayerActivity : AppCompatActivity() {
         /*
          * 2. Referer
          */
-        current?.referer
-            ?.trim()
-            ?.takeIf { it.isNotBlank() }
-            ?.let { requestHeaders["Referer"] = it }
+        val referer =
+            current?.referer
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
 
-        /*
-         * 3. Origin — banyak CDN (Cloudflare/Akamai)
-         *    menolak request tanpa Origin yang cocok
-         *    dengan Referer.
-         */
-        current?.referer
-            ?.trim()
-            ?.takeIf { it.isNotBlank() }
-            ?.let { ref ->
-                try {
-                    val uri = Uri.parse(ref)
-                    val scheme = uri.scheme
-                    val authority = uri.authority
-                    if (!scheme.isNullOrBlank() &&
-                        !authority.isNullOrBlank()
-                    ) {
-                        requestHeaders["Origin"] =
-                            "$scheme://$authority"
-                    }
-                } catch (_: Exception) {
-                    // ignore
+        if (referer != null) {
+
+            requestHeaders["Referer"] = referer
+
+            /*
+             * 3. Origin — dihitung dari Referer.
+             */
+            try {
+
+                val uri = Uri.parse(referer)
+
+                val scheme = uri.scheme
+                val authority = uri.authority
+
+                if (!scheme.isNullOrBlank() &&
+                    !authority.isNullOrBlank()
+                ) {
+
+                    requestHeaders["Origin"] =
+                        "$scheme://$authority"
                 }
+
+            } catch (_: Exception) {
+                // ignore
             }
+        }
 
         /*
          * 4. Accept
@@ -1094,16 +1101,27 @@ class PlayerActivity : AppCompatActivity() {
 
         if (cookies.isNotEmpty()) {
             requestHeaders["Cookie"] = cookies
-            Log.d(
-                "PLAYER_HTTP",
-                "Injecting cookies → $cookies"
-            )
         }
 
         Log.d(
             "PLAYER_HTTP",
-            "Stream headers → $requestHeaders"
+            "Channel '${current?.name}' headers → $requestHeaders"
         )
+
+        /*
+         * Warning kalau channel DRM tapi referrer kosong.
+         */
+        if (
+            current?.drm == true &&
+            referer == null
+        ) {
+
+            Log.w(
+                "PLAYER_HTTP",
+                "⚠️ Channel ${current?.name} DRM aktif " +
+                        "tapi referrer kosong — kemungkinan 403!"
+            )
+        }
 
         return DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
@@ -1328,15 +1346,60 @@ class PlayerActivity : AppCompatActivity() {
          * ==========================================
          */
 
-        if (
-            drmLicense != null &&
-            drmLicense.type
-                .toUUID() != C.UUID_NIL
-        ) {
+        if (drmLicense != null) {
+
+            /*
+             * Normalisasi drmType — case-insensitive.
+             */
+            val drmTypeNormalized =
+                drmLicense.type
+                    .lowercase()
+                    .trim()
 
             val uuid =
-                drmLicense.type
-                    .toUUID()
+                when (drmTypeNormalized) {
+
+                    "clearkey",
+                    "org.w3.clearkey" ->
+                        C.CLEARKEY_UUID
+
+                    "widevine",
+                    "com.widevine.alpha" ->
+                        C.WIDEVINE_UUID
+
+                    "playready",
+                    "com.microsoft.playready" ->
+                        C.PLAYREADY_UUID
+
+                    else ->
+                        C.UUID_NIL
+                }
+
+
+            /*
+             * Skip DRM kalau uuid tidak dikenali.
+             */
+            if (uuid == C.UUID_NIL) {
+
+                Log.w(
+                    "PLAYER_DRM",
+                    "Unknown DRM type: ${drmLicense.type}"
+                )
+
+                mediaSource =
+                    mediaSourceFactory
+                        .createMediaSource(
+                            mediaItem
+                        )
+
+                /* Lanjut ke bagian bawah method. */
+                setupPlayer(
+                    mediaSourceFactory,
+                    mediaSource
+                )
+
+                return
+            }
 
 
             /*
@@ -1500,6 +1563,30 @@ class PlayerActivity : AppCompatActivity() {
                     )
         }
 
+
+        /*
+         * ==========================================
+         * SETUP PLAYER
+         * ==========================================
+         */
+
+        setupPlayer(
+            mediaSourceFactory,
+            mediaSource
+        )
+    }
+
+
+    /*
+     * ============================================================
+     * SETUP PLAYER
+     * ============================================================
+     */
+
+    private fun setupPlayer(
+        mediaSourceFactory: DefaultMediaSourceFactory,
+        mediaSource: MediaSource
+    ) {
 
         /*
          * ==========================================
@@ -1984,8 +2071,7 @@ class PlayerActivity : AppCompatActivity() {
         ) {
 
             /*
-             * Log detail error HTTP (termasuk 403)
-             * sebelum ditangani.
+             * Log detail error HTTP (termasuk 403).
              */
 
             logHttpError(error)
@@ -2154,6 +2240,11 @@ class PlayerActivity : AppCompatActivity() {
      * lalu men-log response code, headers, URI, dan
      * body yang dikirim server.
      *
+     * CATATAN:
+     *  - Media3 tidak punya field "errorStream" seperti
+     *    ExoPlayer 2 lama. Yang tersedia adalah
+     *    "responseBody" bertipe ByteArray?.
+     *
      * Filter Logcat: tag = PLAYER_DEBUG
      * ============================================================
      */
@@ -2180,9 +2271,9 @@ class PlayerActivity : AppCompatActivity() {
 
                 val body = try {
 
-                    cause.errorStream
-                        ?.bufferedReader()
-                        ?.use { it.readText() }
+                    cause.responseBody
+                        ?.toString(Charsets.UTF_8)
+                        ?: "<response body kosong>"
 
                 } catch (e: Exception) {
 
