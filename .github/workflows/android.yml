@@ -19,111 +19,215 @@ permissions:
   contents: read
 
 concurrency:
-  group: android-build-${{ github.workflow }}-${{ github.ref }}
+  group: android-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build Android APK
+    name: Build NontonTV
     runs-on: ubuntu-latest
 
     steps:
-      # ---------------------------------------------------------
-      # Checkout
-      # ---------------------------------------------------------
-      - name: Checkout source
-        uses: actions/checkout@v4
 
-      # ---------------------------------------------------------
-      # Java 17
-      # ---------------------------------------------------------
+      # =========================================================
+      # CHECKOUT
+      # =========================================================
+
+      - name: Checkout source
+        uses: actions/checkout@v5
+
+
+      # =========================================================
+      # JAVA 17
+      # =========================================================
+
       - name: Setup JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
           cache: gradle
 
-      # ---------------------------------------------------------
-      # Gradle
-      # ---------------------------------------------------------
+
+      # =========================================================
+      # SETUP GRADLE
+      # =========================================================
+
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-disabled: false
 
-      # ---------------------------------------------------------
-      # Make Gradle Wrapper executable
-      # ---------------------------------------------------------
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
 
-      # ---------------------------------------------------------
-      # Show build environment
-      # ---------------------------------------------------------
-      - name: Show environment
+      # =========================================================
+      # CHECK PROJECT
+      # =========================================================
+
+      - name: Check project files
+        shell: bash
+        run: |
+          echo "======================================"
+          echo "PROJECT DIRECTORY"
+          echo "======================================"
+
+          pwd
+
+          echo
+          echo "Files:"
+          find . -maxdepth 2 -type f | sort | head -200
+
+          echo
+          echo "Gradle wrapper:"
+          ls -la gradlew || true
+          ls -la gradle/wrapper || true
+
+
+      # =========================================================
+      # FIX GRADLE WRAPPER LINE ENDINGS
+      # =========================================================
+
+      - name: Fix Gradle wrapper
+        shell: bash
+        run: |
+          set -e
+
+          if [ ! -f "./gradlew" ]; then
+            echo "ERROR: gradlew tidak ditemukan."
+            exit 1
+          fi
+
+          # Hilangkan CRLF jika file gradlew menggunakan Windows
+          # line endings.
+          sed -i 's/\r$//' ./gradlew
+
+          chmod +x ./gradlew
+
+          echo
+          echo "gradlew permissions:"
+          ls -l ./gradlew
+
+          echo
+          echo "gradlew first lines:"
+          head -30 ./gradlew
+
+
+      # =========================================================
+      # VERIFY WRAPPER JAR
+      # =========================================================
+
+      - name: Verify Gradle wrapper
+        shell: bash
+        run: |
+          set -e
+
+          if [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
+            echo "ERROR:"
+            echo "gradle/wrapper/gradle-wrapper.jar tidak ditemukan."
+            echo
+            echo "Isi folder gradle/wrapper:"
+            ls -la gradle/wrapper || true
+            exit 1
+          fi
+
+          echo "Gradle wrapper JAR ditemukan:"
+          ls -lh gradle/wrapper/gradle-wrapper.jar
+
+
+      # =========================================================
+      # JAVA / GRADLE VERSION
+      # =========================================================
+
+      - name: Show build environment
+        shell: bash
         run: |
           java -version
+
+          echo
+          echo "JAVA_HOME=$JAVA_HOME"
+
+          echo
           ./gradlew --version
 
-      # ---------------------------------------------------------
-      # Validate Gradle wrapper
-      # ---------------------------------------------------------
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v4
 
-      # ---------------------------------------------------------
-      # Build Debug APK
-      # ---------------------------------------------------------
+      # =========================================================
+      # CLEAN
+      # =========================================================
+
+      - name: Clean project
+        shell: bash
+        run: |
+          ./gradlew clean \
+            --stacktrace \
+            --no-daemon
+
+
+      # =========================================================
+      # BUILD DEBUG
+      # =========================================================
+
       - name: Build Debug APK
+        shell: bash
         run: |
-          ./gradlew \
-            :app:assembleDebug \
+          ./gradlew :app:assembleDebug \
             --stacktrace \
-            --no-daemon
+            --no-daemon \
+            --warning-mode all
 
-      # ---------------------------------------------------------
-      # Build Release APK
-      #
-      # Ini menghasilkan release APK unsigned jika project
-      # belum dikonfigurasi signing.
-      # ---------------------------------------------------------
+
+      # =========================================================
+      # BUILD RELEASE
+      # =========================================================
+
       - name: Build Release APK
+        shell: bash
         run: |
-          ./gradlew \
-            :app:assembleRelease \
+          ./gradlew :app:assembleRelease \
             --stacktrace \
-            --no-daemon
+            --no-daemon \
+            --warning-mode all
 
-      # ---------------------------------------------------------
-      # List generated APK
-      # ---------------------------------------------------------
-      - name: List APK files
+
+      # =========================================================
+      # SHOW APK
+      # =========================================================
+
+      - name: List generated APK
         if: always()
+        shell: bash
         run: |
-          echo "Generated APK files:"
-          find app/build/outputs/apk -type f -name "*.apk" -print || true
+          echo "======================================"
+          echo "GENERATED APK"
+          echo "======================================"
 
-      # ---------------------------------------------------------
-      # Upload Debug APK
-      # ---------------------------------------------------------
+          find app/build/outputs/apk \
+            -type f \
+            -name "*.apk" \
+            -print 2>/dev/null || true
+
+
+      # =========================================================
+      # UPLOAD DEBUG APK
+      # =========================================================
+
       - name: Upload Debug APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: NontonTV-debug-${{ github.run_number }}
-          path: |
-            app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
 
-      # ---------------------------------------------------------
-      # Upload Release APK
-      # ---------------------------------------------------------
+
+      # =========================================================
+      # UPLOAD RELEASE APK
+      # =========================================================
+
       - name: Upload Release APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: NontonTV-release-${{ github.run_number }}
-          path: |
-            app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 14
