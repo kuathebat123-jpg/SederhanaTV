@@ -1107,8 +1107,7 @@ class PlayerActivity : AppCompatActivity() {
             "PLAYER_HTTP",
             "Channel '${current?.name}' headers → $requestHeaders"
         )
-        }
-
+        
         return DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
             .setConnectTimeoutMs(15_000)
