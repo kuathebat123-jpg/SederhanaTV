@@ -415,9 +415,10 @@ private fun parseStarVisionJson(
                 normalizedCategory
             ) {
 
-                Category(
-                    name = normalizedCategory
-                ).apply {
+                Category().apply {
+
+                    name =
+                        normalizedCategory
 
                     channels =
                         ArrayList()
