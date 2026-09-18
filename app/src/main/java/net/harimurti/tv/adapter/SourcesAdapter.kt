@@ -9,7 +9,6 @@ import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
-import net.harimurti.tv.BR
 import net.harimurti.tv.R
 import net.harimurti.tv.databinding.ItemSourceBinding
 import net.harimurti.tv.dialog.SettingDialog
@@ -29,8 +28,8 @@ class SourcesAdapter(private val sources: ArrayList<Source>?):
 
     class ViewHolder(var itemBinding: ItemSourceBinding) :
         RecyclerView.ViewHolder(itemBinding.root) {
-        fun bind(obj: Any?) {
-            itemBinding.setVariable(BR.modelSource, obj)
+        fun bind(obj: Source?) {
+            itemBinding.modelSource = obj
             itemBinding.executePendingBindings()
         }
     }
