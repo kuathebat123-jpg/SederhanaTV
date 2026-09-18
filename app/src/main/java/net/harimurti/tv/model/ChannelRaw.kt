@@ -11,7 +11,9 @@ class ChannelRaw {
 
     var drmType: String? = null
     var drmKey: String? = null
-    var drmHeaders: HashMap<String, String> = HashMap()
+
+    var drmHeaders: HashMap<String, String> =
+        HashMap()
 
     var userAgent: String? = null
     var referer: String? = null
