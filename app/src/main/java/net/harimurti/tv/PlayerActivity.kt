@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.app.PictureInPictureParams
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ActivityInfo
@@ -53,6 +54,7 @@ import androidx.media3.exoplayer.source.MediaSource
 
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
+import androidx.media3.ui.PlayerView
 
 import net.harimurti.tv.databinding.ActivityPlayerBinding
 import net.harimurti.tv.databinding.CustomControlBinding
@@ -344,8 +346,8 @@ class PlayerActivity : AppCompatActivity() {
 
             setOnTouchListener(
                 object : OnSwipeTouchListener(
-                    this@PlayerActivity
-                ) {
+                    this
+                  ) {
 
                     override fun onSwipeDown() {
                         switchChannel(
@@ -398,12 +400,14 @@ class PlayerActivity : AppCompatActivity() {
                 }
             )
 
-            setControllerVisibilityListener {
+            setControllerVisibilityListener(
+            PlayerView.ControllerVisibilityListener { visibility ->
 
-                isControllerVisible = (it == View.VISIBLE)
+               isControllerVisible =
+                   visibility == View.VISIBLE
 
-                setChannelInformation(
-                    it == View.VISIBLE
+               setChannelInformation(
+                  visibility == View.VISIBLE
                 )
             }
         }
@@ -2206,8 +2210,12 @@ class PlayerActivity : AppCompatActivity() {
 
         TrackSelectionDialog
             .createForTrackSelector(
-                trackSelector
-            ) { }
+                trackSelector,
+                player,
+        DialogInterface.OnDismissListener {
+                   retryPlayback(true)
+                }
+            )
             .show(
                 supportFragmentManager,
                 null
