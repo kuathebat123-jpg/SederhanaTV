@@ -12,6 +12,10 @@
     <string name="press_back_twice_exit_app">Tekan lagi untuk keluar dari aplikasi!</string>
     <string name="press_back_twice_exit_player">Tekan lagi untuk keluar dari pemutar!</string>
     <string name="track_selection_title">Pilih trek</string>
+    <string name="track_selection_no_content">Tidak ada trek tersedia</string>
+    <string name="track_selection_video">Video</string>
+    <string name="track_selection_audio">Audio</string>
+    <string name="track_selection_text">Subtitle</string>
     <string name="error_unsupported">Media menyertakan trek %s, tetapi tidak ada yang dapat diputar oleh perangkat ini</string>
     <string name="playback_speed">Kecepatan Pemutaran</string>
     <string name="speed_0_25">0.25</string>
@@ -35,7 +39,7 @@
     <string name="bottom_category">Kategori paling bawah</string>
     <string name="playlist_cant_be_parsed">Playlist tidak ada, tidak bisa diuraikan?</string>
     <string name="btn_next_channel">Saluran Berikutnya</string>
-    <string name="player_error_message">Kode : %s\nNamaKode : %s\nPesan Error : %s</string>
+    <string name="player_error_message">Kode : %1$s\nNamaKode : %2$s\nPesan Error : %3$s</string>
     <string name="device_not_support_drm">Perangkat anda tidak mendukung DRM %s!</string>
     <string name="favorite_channel">Saluran Favorit</string>
     <string name="removed_from_favorite">%s telah dihapus dari Favorit</string>
