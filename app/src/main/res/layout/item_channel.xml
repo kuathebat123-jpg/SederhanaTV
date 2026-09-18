@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="catId"
+            type="int" />
+        <variable
+            name="chId"
+            type="int" />
+        <variable
+            name="modelChannel"
+            type="net.harimurti.tv.model.Channel" />
+        <variable
+            name="clickListener"
+            type="net.harimurti.tv.adapter.ChannelClickListener" />
+    </data>
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_play"
+            android:layout_width="@dimen/btn_channel_width"
+            android:layout_height="@dimen/btn_channel_height"
+            android:background="@drawable/button_channel"
+            android:ellipsize="end"
+            android:lines="3"
+            android:padding="@dimen/btn_channel_padding"
+            tools:text="DUMMY CHANNEL WITH LONG NAME IN IT"
+            android:text="@{modelChannel.name}"
+            android:onClick="@{() -> clickListener.onClicked(modelChannel, catId, chId)}"
+            android:onLongClick="@{() -> clickListener.onLongClicked(modelChannel, catId, chId)}"
+            app:onFocusChangeListener="@{clickListener.onFocusChanged}"/>
+
+    </FrameLayout>
+</layout>

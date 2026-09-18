@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="searchAdapter"
+            type="net.harimurti.tv.adapter.SearchAdapter" />
+    </data>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:ignore="ContentDescription">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/search_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/search_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:hint="@string/name_channel"
+                android:lines="1"
+                android:maxLines="1"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:paddingStart="38dp"
+                android:paddingEnd="38dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/search_reset"
+                style="@style/ImageButtonBase"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                app:srcCompat="@drawable/ic_clear"
+                app:layout_constraintBottom_toBottomOf="@+id/search_input"
+                app:layout_constraintEnd_toEndOf="@+id/search_input"
+                app:layout_constraintTop_toTopOf="@+id/search_input"
+                android:visibility="gone" />
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                app:srcCompat="@drawable/ic_search"
+                app:layout_constraintBottom_toBottomOf="@+id/search_input"
+                app:layout_constraintStart_toStartOf="@+id/search_input"
+                app:layout_constraintTop_toTopOf="@+id/search_input" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/search_list"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_above="@id/search_close"
+            android:layout_below="@id/search_layout"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            tools:listitem="@layout/item_channel"
+            tools:visibility="visible"
+            android:adapter="@{searchAdapter}" />
+
+        <Button
+            android:id="@+id/search_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_close"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            style="?android:attr/borderlessButtonStyle"/>
+
+    </RelativeLayout>
+
+</layout>
