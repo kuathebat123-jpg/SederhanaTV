@@ -1107,20 +1107,6 @@ class PlayerActivity : AppCompatActivity() {
             "PLAYER_HTTP",
             "Channel '${current?.name}' headers → $requestHeaders"
         )
-
-        /*
-         * Warning kalau channel DRM tapi referrer kosong.
-         */
-        if (
-            current?.drmId == true &&
-            referer == null
-        ) {
-
-            Log.w(
-                "PLAYER_HTTP",
-                "⚠️ Channel ${current?.name} DRM aktif " +
-                        "tapi referrer kosong — kemungkinan 403!"
-            )
         }
 
         return DefaultHttpDataSource.Factory()
