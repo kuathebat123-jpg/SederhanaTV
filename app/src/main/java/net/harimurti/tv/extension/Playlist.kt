@@ -274,7 +274,10 @@ private fun parseStarVisionJson(
          * ----------------------------------------------------
          */
         val referer =
-            item.get("referer")
+            (
+                item.get("referer")
+                    ?: item.get("referrer")
+            )
                 ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
@@ -299,7 +302,10 @@ private fun parseStarVisionJson(
                 ?: ""
 
         val licenseKey =
-            item.get("licUrl")
+            (
+                item.get("licUrl")
+                    ?: item.get("licenseKey")
+            )
                 ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
