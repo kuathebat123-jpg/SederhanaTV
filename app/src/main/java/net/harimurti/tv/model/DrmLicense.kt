@@ -13,12 +13,6 @@ class DrmLicense {
     @SerializedName("drm_key")
     var key: String = ""
 
-    /**
-     * HTTP headers yang dikirim ketika meminta license.
-     *
-     * Contoh:
-     * Authorization = Bearer xxxxx
-     * X-Custom-Header = value
-     */
-    var headers: HashMap<String, String> = HashMap()
+    var headers: HashMap<String, String> =
+        HashMap()
 }
