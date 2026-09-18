@@ -38,6 +38,7 @@ import androidx.media3.common.Tracks
 
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.HttpDataSource
 
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -65,6 +66,10 @@ import net.harimurti.tv.model.Category
 import net.harimurti.tv.model.Channel
 import net.harimurti.tv.model.PlayData
 import net.harimurti.tv.model.Playlist
+
+import java.net.CookieHandler
+import java.net.CookieManager
+import java.net.CookiePolicy
 
 import kotlin.math.ceil
 
@@ -114,6 +119,14 @@ class PlayerActivity : AppCompatActivity() {
     private var isLocked = false
 
     private var isControllerVisible = false
+
+    /**
+     * Cookie manager global — dipakai bersama oleh
+     * stream request DAN license request supaya
+     * cookie dari redirect/manifest ikut terbawa.
+     */
+    private val cookieManager: CookieManager =
+        CookieManager(null, CookiePolicy.ACCEPT_ALL)
 
     private val broadcastReceiver: BroadcastReceiver =
         object : BroadcastReceiver() {
@@ -188,6 +201,19 @@ class PlayerActivity : AppCompatActivity() {
         setContentView(bindingRoot.root)
 
         isFirst = false
+
+
+        /*
+         * ==========================================
+         * GLOBAL COOKIE HANDLER
+         * ==========================================
+         *
+         * Wajib di-set SEBELUM player dibuat supaya
+         * cookie dari manifest redirect ikut terbawa
+         * ke license request, dan sebaliknya.
+         */
+
+        CookieHandler.setDefault(cookieManager)
 
 
         /*
@@ -987,49 +1013,105 @@ class PlayerActivity : AppCompatActivity() {
      * ============================================================
      * CREATE HTTP FACTORY
      * ============================================================
+     *
+     * Membangun DataSource HTTP dengan header lengkap:
+     *  - User-Agent custom dari Channel
+     *  - Referer
+     *  - Origin (dihitung dari Referer)
+     *  - Accept
+     *  - Cookie otomatis dari CookieManager
+     *
+     * Semua header ini juga akan otomatis dipakai oleh
+     * request manifest, segmen video, DAN license server
+     * (karena httpDataSourceFactory yang sama diberikan
+     * ke HttpMediaDrmCallback).
+     * ============================================================
      */
 
     private fun createHttpDataSourceFactory():
-        DefaultHttpDataSource.Factory {
+            DefaultHttpDataSource.Factory {
 
-    val userAgent =
-        current?.userAgent
+        val userAgent =
+            current?.userAgent
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?: "NontonTV/${BuildConfig.VERSION_NAME} " +
+                        "(Android ${Build.VERSION.RELEASE})"
+
+        val requestHeaders = HashMap<String, String>()
+
+        /*
+         * 1. User-Agent
+         */
+        requestHeaders["User-Agent"] = userAgent
+
+        /*
+         * 2. Referer
+         */
+        current?.referer
             ?.trim()
-            ?.takeIf {
-                it.isNotBlank()
+            ?.takeIf { it.isNotBlank() }
+            ?.let { requestHeaders["Referer"] = it }
+
+        /*
+         * 3. Origin — banyak CDN (Cloudflare/Akamai)
+         *    menolak request tanpa Origin yang cocok
+         *    dengan Referer.
+         */
+        current?.referer
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?.let { ref ->
+                try {
+                    val uri = Uri.parse(ref)
+                    val scheme = uri.scheme
+                    val authority = uri.authority
+                    if (!scheme.isNullOrBlank() &&
+                        !authority.isNullOrBlank()
+                    ) {
+                        requestHeaders["Origin"] =
+                            "$scheme://$authority"
+                    }
+                } catch (_: Exception) {
+                    // ignore
+                }
             }
-            ?: "NontonTV/${BuildConfig.VERSION_NAME} " +
-            "(Android ${Build.VERSION.RELEASE})"
 
-    val requestHeaders =
-        HashMap<String, String>()
+        /*
+         * 4. Accept
+         */
+        requestHeaders["Accept"] = "*/*"
 
-    /*
-     * User-Agent
-     */
-    requestHeaders["User-Agent"] =
-        userAgent
+        /*
+         * 5. Cookie dari CookieManager
+         */
+        val cookies = cookieManager
+            .cookieStore
+            .cookies
+            .joinToString("; ") {
+                "${it.name}=${it.value}"
+            }
 
-    /*
-     * Referer
-     */
-    current?.referer
-        ?.trim()
-        ?.takeIf {
-            it.isNotBlank()
+        if (cookies.isNotEmpty()) {
+            requestHeaders["Cookie"] = cookies
+            Log.d(
+                "PLAYER_HTTP",
+                "Injecting cookies → $cookies"
+            )
         }
-        ?.let { value ->
-            requestHeaders["Referer"] =
-                value
-        }
 
-    return DefaultHttpDataSource.Factory()
-        .setAllowCrossProtocolRedirects(true)
-        .setUserAgent(userAgent)
-        .setDefaultRequestProperties(
-            requestHeaders
+        Log.d(
+            "PLAYER_HTTP",
+            "Stream headers → $requestHeaders"
         )
-}
+
+        return DefaultHttpDataSource.Factory()
+            .setAllowCrossProtocolRedirects(true)
+            .setConnectTimeoutMs(15_000)
+            .setReadTimeoutMs(15_000)
+            .setUserAgent(userAgent)
+            .setDefaultRequestProperties(requestHeaders)
+    }
 
 
     /*
@@ -1037,13 +1119,16 @@ class PlayerActivity : AppCompatActivity() {
      * DRM HEADER PARSER
      * ============================================================
      *
-     * Format:
+     * Format license key di playlist:
      *
      * https://license.example/license
      * |Authorization=Bearer TOKEN
      * |X-Device-ID=123
      *
      * Header tersebut hanya dikirim ke license server.
+     *
+     * Cookie juga otomatis di-inject dari CookieManager
+     * supaya sesi login dari manifest ikut ke license.
      * ============================================================
      */
 
@@ -1063,8 +1148,44 @@ class PlayerActivity : AppCompatActivity() {
                     entry.key,
                     entry.value
                 )
+
+                Log.d(
+                    "PLAYER_DRM",
+                    "License header → ${entry.key}"
+                )
             }
         }
+
+        /*
+         * Cookie otomatis
+         */
+        val cookies = cookieManager
+            .cookieStore
+            .cookies
+            .joinToString("; ") {
+                "${it.name}=${it.value}"
+            }
+
+        if (cookies.isNotEmpty()) {
+
+            callback.setKeyRequestProperty(
+                "Cookie",
+                cookies
+            )
+
+            Log.d(
+                "PLAYER_DRM",
+                "License cookie → $cookies"
+            )
+        }
+
+        /*
+         * Content-Type standar untuk Widevine license.
+         */
+        callback.setKeyRequestProperty(
+            "Content-Type",
+            "application/octet-stream"
+        )
     }
 
 
@@ -1154,14 +1275,6 @@ class PlayerActivity : AppCompatActivity() {
         /*
          * Kalau parser playlist memberikan MIME,
          * gunakan MIME tersebut.
-         *
-         * Untuk DASH:
-         *
-         * application/dash+xml
-         *
-         * Untuk HLS:
-         *
-         * application/x-mpegURL
          */
 
         current?.mimeType
@@ -1253,15 +1366,6 @@ class PlayerActivity : AppCompatActivity() {
              * ======================================
              * CLEARKEY
              * ======================================
-             *
-             * Contoh:
-             *
-             * kid:key
-             *
-             * atau:
-             *
-             * kid:key|kid2:key2
-             *
              */
 
             if (
@@ -1303,10 +1407,6 @@ class PlayerActivity : AppCompatActivity() {
                  * ==================================
                  * LICENSE SERVER
                  * ==================================
-                 *
-                 * Widevine biasanya:
-                 *
-                 * https://license-server/...
                  */
 
                 if (
@@ -1435,12 +1535,6 @@ class PlayerActivity : AppCompatActivity() {
          * ==========================================
          * RENDERERS
          * ==========================================
-         *
-         * Extension renderer OFF.
-         *
-         * Project lama mempunyai FFmpeg ExoPlayer
-         * 2.x yang tidak boleh dicampur sembarangan
-         * dengan Media3.
          */
 
         val renderersFactory =
@@ -1861,7 +1955,6 @@ class PlayerActivity : AppCompatActivity() {
                     retryPlayback(true)
                 }
 
-
                 else -> {
                     // Nothing.
                 }
@@ -1889,6 +1982,14 @@ class PlayerActivity : AppCompatActivity() {
         override fun onPlayerError(
             error: PlaybackException
         ) {
+
+            /*
+             * Log detail error HTTP (termasuk 403)
+             * sebelum ditangani.
+             */
+
+            logHttpError(error)
+
 
             if (
                 player?.playWhenReady == false
@@ -1941,20 +2042,6 @@ class PlayerActivity : AppCompatActivity() {
         /*
          * ========================================================
          * MEDIA3 TRACK CHANGE
-         * ========================================================
-         *
-         * API lama:
-         *
-         * onTracksChanged(
-         *     TrackGroupArray,
-         *     TrackSelectionArray
-         * )
-         *
-         * sudah tidak dipakai.
-         *
-         * Media3:
-         *
-         * onTracksChanged(Tracks)
          * ========================================================
          */
 
@@ -2053,6 +2140,91 @@ class PlayerActivity : AppCompatActivity() {
                     Toast.LENGTH_LONG
                 ).show()
             }
+        }
+    }
+
+
+    /*
+     * ============================================================
+     * HTTP ERROR LOGGER (DEBUG 403)
+     * ============================================================
+     *
+     * Menelusuri chain cause dari PlaybackException
+     * sampai menemukan InvalidResponseCodeException,
+     * lalu men-log response code, headers, URI, dan
+     * body yang dikirim server.
+     *
+     * Filter Logcat: tag = PLAYER_DEBUG
+     * ============================================================
+     */
+
+    private fun logHttpError(
+        error: PlaybackException
+    ) {
+
+        var cause: Throwable? = error.cause
+        var depth = 0
+
+        while (cause != null && depth < 10) {
+
+            Log.e(
+                "PLAYER_DEBUG",
+                "Cause[$depth]: " +
+                        "${cause.javaClass.name} — ${cause.message}"
+            )
+
+            if (
+                cause is HttpDataSource
+                    .InvalidResponseCodeException
+            ) {
+
+                val body = try {
+
+                    cause.errorStream
+                        ?.bufferedReader()
+                        ?.use { it.readText() }
+
+                } catch (e: Exception) {
+
+                    "<gagal baca body: ${e.message}>"
+                }
+
+
+                Log.e(
+                    "PLAYER_DEBUG",
+                    "═════════ HTTP ERROR ═════════"
+                )
+
+                Log.e(
+                    "PLAYER_DEBUG",
+                    "Response Code : ${cause.responseCode}"
+                )
+
+                Log.e(
+                    "PLAYER_DEBUG",
+                    "DataSpec URI  : ${cause.dataSpec.uri}"
+                )
+
+                Log.e(
+                    "PLAYER_DEBUG",
+                    "Response Headers : ${cause.headerFields}"
+                )
+
+                Log.e(
+                    "PLAYER_DEBUG",
+                    "Response Body    : $body"
+                )
+
+                Log.e(
+                    "PLAYER_DEBUG",
+                    "════════════════════════════════"
+                )
+
+                break
+            }
+
+            cause = cause.cause
+            depth++
         }
     }
 
