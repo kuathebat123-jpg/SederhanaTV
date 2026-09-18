@@ -7,10 +7,11 @@ import android.widget.LinearLayout
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import net.harimurti.tv.BR
 import net.harimurti.tv.R
 import net.harimurti.tv.databinding.ItemCategoryBinding
-import net.harimurti.tv.extension.*
+import net.harimurti.tv.extension.addFavorite
+import net.harimurti.tv.extension.isFavorite
+import net.harimurti.tv.extension.sort
 import net.harimurti.tv.extra.Preferences
 import net.harimurti.tv.model.Category
 import net.harimurti.tv.model.Playlist
@@ -26,12 +27,8 @@ class CategoryAdapter(
         var itemCatBinding: ItemCategoryBinding
     ) : RecyclerView.ViewHolder(itemCatBinding.root) {
 
-        fun bind(obj: Any?) {
-            itemCatBinding.setVariable(
-                BR.catModel,
-                obj
-            )
-
+        fun bind(obj: Category?) {
+            itemCatBinding.catModel = obj
             itemCatBinding.executePendingBindings()
         }
     }
@@ -83,11 +80,9 @@ class CategoryAdapter(
                     1
             }
 
-
         val isFav =
             category?.isFavorite() == true &&
                 position == 0
-
 
         viewHolder.itemCatBinding.chAdapter =
             ChannelAdapter(
@@ -96,7 +91,6 @@ class CategoryAdapter(
                 isFav
             )
 
-
         viewHolder.itemCatBinding
             .rvChannels
             .layoutManager =
@@ -104,7 +98,6 @@ class CategoryAdapter(
                 spanCount,
                 StaggeredGridLayoutManager.HORIZONTAL
             )
-
 
         val dm =
             context.resources.displayMetrics
@@ -120,7 +113,6 @@ class CategoryAdapter(
 
         val wrapContent =
             LinearLayout.LayoutParams.WRAP_CONTENT
-
 
         if (position == 0) {
 
@@ -148,15 +140,12 @@ class CategoryAdapter(
                 maxWidth
         }
 
-
         viewHolder.bind(category)
     }
-
 
     override fun getItemCount(): Int {
         return categories?.size ?: 0
     }
-
 
     fun clear() {
 
@@ -174,7 +163,6 @@ class CategoryAdapter(
         }
     }
 
-
     fun insertOrUpdateFavorite() {
 
         val fav =
@@ -183,7 +171,6 @@ class CategoryAdapter(
         if (Preferences().sortFavorite) {
             fav.sort()
         }
-
 
         if (
             categories?.isNotEmpty() == true &&
@@ -198,14 +185,12 @@ class CategoryAdapter(
             return
         }
 
-
         val lastCount =
             itemCount
 
         categories?.addFavorite(
             fav.channels
         )
-
 
         if (itemCount > lastCount) {
 
@@ -220,7 +205,6 @@ class CategoryAdapter(
             }
         }
     }
-
 
     fun removeFavorite() {
 
