@@ -990,39 +990,46 @@ class PlayerActivity : AppCompatActivity() {
      */
 
     private fun createHttpDataSourceFactory():
-            DefaultHttpDataSource.Factory {
+        DefaultHttpDataSource.Factory {
 
-        val userAgent =
-            current?.userAgent
-                ?.takeIf {
-                    it.isNotBlank()
-                }
-                ?: "NontonTV/${BuildConfig.VERSION_NAME} " +
-                "(Android ${Build.VERSION.RELEASE})"
-
-        val factory =
-            DefaultHttpDataSource.Factory()
-                .setAllowCrossProtocolRedirects(true)
-                .setUserAgent(userAgent)
-
-        /*
-         * Stream Referer.
-         */
-        current?.referer
+    val userAgent =
+        current?.userAgent
+            ?.trim()
             ?.takeIf {
                 it.isNotBlank()
             }
-            ?.let {
+            ?: "NontonTV/${BuildConfig.VERSION_NAME} " +
+            "(Android ${Build.VERSION.RELEASE})"
 
-                factory.setDefaultRequestProperties(
-                    mapOf(
-                        "Referer" to it
-                    )
-                )
-            }
+    val requestHeaders =
+        HashMap<String, String>()
 
-        return factory
-    }
+    /*
+     * User-Agent
+     */
+    requestHeaders["User-Agent"] =
+        userAgent
+
+    /*
+     * Referer
+     */
+    current?.referer
+        ?.trim()
+        ?.takeIf {
+            it.isNotBlank()
+        }
+        ?.let { value ->
+            requestHeaders["Referer"] =
+                value
+        }
+
+    return DefaultHttpDataSource.Factory()
+        .setAllowCrossProtocolRedirects(true)
+        .setUserAgent(userAgent)
+        .setDefaultRequestProperties(
+            requestHeaders
+        )
+}
 
 
     /*
