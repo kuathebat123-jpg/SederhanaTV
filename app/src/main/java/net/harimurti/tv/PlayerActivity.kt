@@ -342,75 +342,70 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun bindingListener() {
 
-        bindingRoot.playerView.apply {
+        bindingRoot.playerView.setOnTouchListener(
+            object : OnSwipeTouchListener(
+                bindingRoot.playerView
+            ) {
 
-            setOnTouchListener(
-                object : OnSwipeTouchListener(
-                    bindingRoot.playerView
-                  ) {
-
-                    override fun onSwipeDown() {
-                        switchChannel(
-                            CATEGORY_UP
-                        )
-                    }
-
-                    override fun onSwipeUp() {
-                        switchChannel(
-                            CATEGORY_DOWN
-                        )
-                    }
-
-                    override fun onSwipeLeft() {
-                        switchChannel(
-                            CHANNEL_NEXT
-                        )
-                    }
-
-                    override fun onSwipeRight() {
-                        switchChannel(
-                            CHANNEL_PREVIOUS
-                        )
-                    }
-
-                    override fun onTapDoubleLeft(
-                        click: Int
-                    ) {
-
-                        doubleTapLeft(click)
-                    }
-
-                    override fun onTapDoubleRight(
-                        click: Int
-                    ) {
-
-                        doubleTapRight(click)
-                    }
-
-                    override fun onTapDoubleFinish(
-                        click: Int,
-                        isLeft: Boolean
-                    ) {
-
-                        doubleTapFinish(
-                            click,
-                            isLeft
-                        )
-                    }
+                override fun onSwipeDown() {
+                    switchChannel(
+                        CATEGORY_UP
+                    )
                 }
-            )
 
-            setControllerVisibilityListener(
+                override fun onSwipeUp() {
+                    switchChannel(
+                        CATEGORY_DOWN
+                    )
+                }
+
+                override fun onSwipeLeft() {
+                    switchChannel(
+                        CHANNEL_NEXT
+                    )
+                }
+
+                override fun onSwipeRight() {
+                    switchChannel(
+                        CHANNEL_PREVIOUS
+                    )
+                }
+
+                override fun onTapDoubleLeft(
+                    click: Int
+                ) {
+                    doubleTapLeft(click)
+                }
+
+                override fun onTapDoubleRight(
+                    click: Int
+                ) {
+                    doubleTapRight(click)
+                }
+
+                override fun onTapDoubleFinish(
+                    click: Int,
+                    isLeft: Boolean
+                ) {
+                    doubleTapFinish(
+                        click,
+                        isLeft
+                    )
+                }
+            }
+        )
+
+        bindingRoot.playerView.setControllerVisibilityListener(
             PlayerView.ControllerVisibilityListener { visibility ->
 
-               isControllerVisible =
-                   visibility == View.VISIBLE
+                isControllerVisible =
+                    visibility == View.VISIBLE
 
-               setChannelInformation(
-                  visibility == View.VISIBLE
+                setChannelInformation(
+                    visibility == View.VISIBLE
                 )
             }
-        }
+        )
 
 
         bindingControl.trackSelection
