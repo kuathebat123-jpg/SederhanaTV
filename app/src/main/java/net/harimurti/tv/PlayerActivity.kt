@@ -1112,7 +1112,7 @@ class PlayerActivity : AppCompatActivity() {
          * Warning kalau channel DRM tapi referrer kosong.
          */
         if (
-            current?.drm == true &&
+            current?.drmId == true &&
             referer == null
         ) {
 
