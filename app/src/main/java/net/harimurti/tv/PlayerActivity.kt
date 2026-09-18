@@ -346,7 +346,7 @@ class PlayerActivity : AppCompatActivity() {
 
             setOnTouchListener(
                 object : OnSwipeTouchListener(
-                    this
+                    bindingRoot.playerView
                   ) {
 
                     override fun onSwipeDown() {
