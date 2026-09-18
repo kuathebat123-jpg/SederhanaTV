@@ -1,0 +1,87 @@
+<resources>
+    <!-- some text -->
+    <string name="text_presents">.: PaijemDev Mempersembahkan :.</string>
+    <string name="app_tagline_one">Gratis - OpenSource - Tanpa Iklan</string>
+    <string name="app_tagline_two">Ringan - Simpel - Minimalis</string>
+    <string name="thanks_to">Terimakasih Kepada :</string>
+    <string name="thanks_for_support">iptv-org utk playlist dan orang² yg mendukung proyek ini 😘</string>
+    <string name="btn_retry">Coba Ulang</string>
+    <string name="btn_retry_count">Coba Ulang (%d)</string>
+    <string name="btn_close">Keluar</string>
+    <string name="no_network">Tidak ada koneksi internet!</string>
+    <string name="press_back_twice_exit_app">Tekan lagi untuk keluar dari aplikasi!</string>
+    <string name="press_back_twice_exit_player">Tekan lagi untuk keluar dari pemutar!</string>
+    <string name="track_selection_title">Pilih trek</string>
+    <string name="error_unsupported">Media menyertakan trek %s, tetapi tidak ada yang dapat diputar oleh perangkat ini</string>
+    <string name="playback_speed">Kecepatan Pemutaran</string>
+    <string name="speed_0_25">0.25</string>
+    <string name="speed_0_5">0.5</string>
+    <string name="speed_0_75">0.75</string>
+    <string name="speed_normal">Normal</string>
+    <string name="speed_1_25">1.25</string>
+    <string name="speed_1_5">1.5</string>
+    <string name="speed_1_75">1.75</string>
+    <string name="speed_2">2</string>
+    <string name="screen_size">Ukuran Layar</string>
+    <string name="mode_fit">Pas Layar</string>
+    <string name="mode_fixed_width">Lebar Tetap</string>
+    <string name="mode_fixed_height">Tinggi Tetap</string>
+    <string name="mode_fill">Isi Layar</string>
+    <string name="mode_zoom">Perbesar</string>
+    <string name="must_allow_permissions">Kamu harus mengizinkan semua permintaan izin agar aplikasi ini berfungsi dengan baik!</string>
+    <string name="search_channel">Cari Saluran</string>
+    <string name="name_channel">Nama Saluran</string>
+    <string name="top_category">Kategori paling atas</string>
+    <string name="bottom_category">Kategori paling bawah</string>
+    <string name="playlist_cant_be_parsed">Playlist tidak ada, tidak bisa diuraikan?</string>
+    <string name="btn_next_channel">Saluran Berikutnya</string>
+    <string name="player_error_message">Kode : %s\nNamaKode : %s\nPesan Error : %s</string>
+    <string name="device_not_support_drm">Perangkat anda tidak mendukung DRM %s!</string>
+    <string name="favorite_channel">Saluran Favorit</string>
+    <string name="removed_from_favorite">%s telah dihapus dari Favorit</string>
+    <string name="added_into_favorite">%s telah ditambahkan ke Favorit</string>
+    <string name="already_in_favorite">%s sudah ada dalam Favorite</string>
+    <string name="status_checking_permission">status: mengecek perijinan…</string>
+    <string name="status_checking_new_update">status: mengecek rilisan terbaru…</string>
+    <string name="status_preparing_playlist">status: mempersiapkan playlist…</string>
+
+    <!-- alert playlist error -->
+    <string name="playlist_updated">Playlist sudah diperbaharui!</string>
+    <string name="dialog_retry">Coba lagi</string>
+    <string name="dialog_cached">Gunakan cache</string>
+    <string name="player_playback_error">Kesalahan Pemutaran</string>
+    <string name="player_no_playlist">Kita punya masalah dgn playlist</string>
+    <string name="player_no_channel">Tidak ada saluran utk diputar</string>
+    <string name="player_playdata_error">Tidak bisa memprocess data putar</string>
+
+    <!-- alert update -->
+    <string name="alert_new_update">Pembaharuan</string>
+    <string name="dialog_download">Unduh APK</string>
+    <string name="dialog_ignore">Abaikan</string>
+    <string name="message_update">Versi\n• Terpasang : v%s (%d)\n• Terkini : %s (%d)\n\nPerubahan :</string>
+    <string name="message_update_no_changelog">\n• lain-lain</string>
+
+    <!-- settings -->
+    <string name="settings">Pengaturan</string>
+    <string name="startup">App Mulai</string>
+    <string name="launch_at_boot">Jalankan App saat Boot</string>
+    <string name="play_last_watched">Putar Terakhir Dilihat</string>
+    <string name="playlist">Daftar Putar</string>
+    <string name="sort_favorite">Urutkan Favorit</string>
+    <string name="sort_category">Urutkan Kategori</string>
+    <string name="sort_channel">Urutkan Saluran</string>
+    <string name="player">Pemutar</string>
+    <string name="optimize_prebuffer">Mengoptimalkan Prebuffer</string>
+    <string name="reverse_player_navigation">Navigasi DPAD Terbalik</string>
+    <string name="tab_about">Tentang</string>
+    <string name="tab_sources">Daftar Putar</string>
+    <string name="tab_app">Aplikasi</string>
+    <string name="input_url">URL Tautan</string>
+    <string name="title_select_file_json">Pilih File Json</string>
+    <string name="null_playlist">No playlists that can be displayed. Check your settings!</string>
+    <string name="checking_url">memeriksa tautan…</string>
+    <string name="link_error">Tautan Bermasalah!</string>
+    <string name="link_copied_to_clipboard">Tautan disalin ke papan klip!</string>
+    <string name="warning_none_source_active">Tidak ada sumber yang aktif, default akan diaktifkan!</string>
+    <string name="more_information">Informasi Lain :</string>
+</resources>
