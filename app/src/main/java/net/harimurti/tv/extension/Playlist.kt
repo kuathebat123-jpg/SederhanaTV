@@ -41,13 +41,8 @@ fun Playlist?.mergeWith(
 ) {
     if (this == null || playlist == null) return
 
-    this.categories.addAll(
-        playlist.categories
-    )
-
-    this.drmLicenses.addAll(
-        playlist.drmLicenses
-    )
+    this.categories.addAll(playlist.categories)
+    this.drmLicenses.addAll(playlist.drmLicenses)
 }
 
 fun Playlist?.insertFavorite(
@@ -76,41 +71,28 @@ fun Playlist?.removeFavorite() {
     }
 }
 
-
-/*
- * ============================================================
- * StarVision-TV JSON parser
- * ============================================================
+/**
+ * Parse format channels.json milik StarVision-TV.
  *
- * Membaca:
+ * Contoh:
  *
  * {
- *   "_info": {...},
- *   "cat_logos": {...},
+ *   "_info": {},
+ *   "cat_logos": {},
  *   "channels": [
- *      {
- *        "id": 1,
- *        "name": "TVRI",
- *        "cat": "NASIONAL",
- *        "logo": "...",
- *        "url": "...",
- *        "type": "hls",
- *        "drm": false,
- *        "ua": "..."
- *      }
+ *     {
+ *       "id": 1,
+ *       "name": "ANTARA TV",
+ *       "cat": "NASIONAL",
+ *       "logo": "https://...",
+ *       "url": "https://...",
+ *       "type": "hls",
+ *       "drm": false,
+ *       "ua": "Mozilla/5.0"
+ *     }
  *   ]
  * }
- *
- * DRM:
- *
- * "drm": true,
- * "type": "dash",
- * "drmType": "ClearKey",
- * "licUrl": "KID:KEY"
- *
- * ============================================================
  */
-
 private fun parseStarVisionJson(
     content: String
 ): Playlist? {
@@ -125,11 +107,8 @@ private fun parseStarVisionJson(
         return null
     }
 
-    val rootObject =
-        root.asJsonObject
-
-    val channelsElement =
-        rootObject.get("channels")
+    val rootObject = root.asJsonObject
+    val channelsElement = rootObject.get("channels")
 
     if (
         channelsElement == null ||
@@ -138,135 +117,98 @@ private fun parseStarVisionJson(
         return null
     }
 
-    val playlist =
-        Playlist()
+    val playlist = Playlist()
 
     /*
-     * Menyimpan kategori berdasarkan nama.
-     *
-     * LinkedHashMap dipakai supaya urutan kategori
-     * mengikuti urutan pertama kali muncul di JSON.
+     * Key = nama kategori
+     * Value = Category object
      */
     val categoryMap =
         LinkedHashMap<String, Category>()
 
     /*
      * ========================================================
-     * LOOP CHANNEL
+     * CHANNEL LOOP
      * ========================================================
      */
-
     channelsElement.asJsonArray.forEach { element ->
 
         if (!element.isJsonObject) {
             return@forEach
         }
 
-        val item =
-            element.asJsonObject
-
+        val item = element.asJsonObject
 
         /*
          * ----------------------------------------------------
          * NAME
          * ----------------------------------------------------
          */
-
         val name =
             item.get("name")
-                ?.takeIf {
-                    !it.isJsonNull
-                }
+                ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
-                ?.ifEmpty {
-                    null
-                }
+                ?.takeIf { it.isNotEmpty() }
                 ?: "Unknown Channel"
-
 
         /*
          * ----------------------------------------------------
          * CATEGORY
          * ----------------------------------------------------
          */
-
         val categoryName =
             item.get("cat")
-                ?.takeIf {
-                    !it.isJsonNull
-                }
+                ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
-                ?.ifEmpty {
-                    null
-                }
+                ?.takeIf { it.isNotEmpty() }
                 ?: "LAINNYA"
-
 
         /*
          * ----------------------------------------------------
          * LOGO
          * ----------------------------------------------------
          */
-
         val logo =
             item.get("logo")
-                ?.takeIf {
-                    !it.isJsonNull
-                }
+                ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
-                ?.ifEmpty {
-                    null
-                }
-
+                ?.takeIf { it.isNotEmpty() }
 
         /*
          * ----------------------------------------------------
          * STREAM URL
          * ----------------------------------------------------
          */
-
         val streamUrl =
             item.get("url")
-                ?.takeIf {
-                    !it.isJsonNull
-                }
+                ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
-                ?.ifEmpty {
-                    null
-                }
+                ?.takeIf { it.isNotEmpty() }
 
         /*
-         * Channel tanpa URL tidak berguna untuk player.
+         * Channel tanpa URL dilewati.
          */
-        if (streamUrl.isNullOrBlank()) {
+        if (streamUrl.isNullOrEmpty()) {
             return@forEach
         }
 
-
         /*
          * ----------------------------------------------------
-         * TYPE
+         * STREAM TYPE
          * ----------------------------------------------------
          */
-
         val type =
             item.get("type")
-                ?.takeIf {
-                    !it.isJsonNull
-                }
+                ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
                 ?.lowercase()
 
-
-        /*
-         * Tentukan MIME type.
-         */
-        val mimeType =
+        val mimeType: String? =
             when (type) {
 
                 "hls",
@@ -299,20 +241,17 @@ private fun parseStarVisionJson(
                 }
             }
 
-
         /*
          * ----------------------------------------------------
          * USER AGENT
          * ----------------------------------------------------
          */
-
         val userAgent =
             item.get("ua")
-                ?.takeIf {
-                    !it.isJsonNull
-                }
+                ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
+                ?.takeIf { it.isNotEmpty() }
                 ?.let { ua ->
 
                     if (
@@ -321,98 +260,80 @@ private fun parseStarVisionJson(
                             ignoreCase = true
                         )
                     ) {
-                        ua.substringAfter(
-                            "="
-                        ).trim()
+                        ua.substringAfter("=")
+                            .trim()
+                            .takeIf { it.isNotEmpty() }
                     } else {
                         ua
                     }
                 }
-
 
         /*
          * ----------------------------------------------------
          * REFERER
          * ----------------------------------------------------
          */
-
         val referer =
             item.get("referer")
-                ?.takeIf {
-                    !it.isJsonNull
-                }
+                ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
-                ?.ifEmpty {
-                    null
-                }
-
+                ?.takeIf { it.isNotEmpty() }
 
         /*
          * ----------------------------------------------------
          * DRM
          * ----------------------------------------------------
          */
-
         val drmEnabled =
             item.get("drm")
-                ?.takeIf {
-                    !it.isJsonNull
-                }
+                ?.takeIf { !it.isJsonNull }
                 ?.asBoolean
                 ?: false
 
         val drmType =
             item.get("drmType")
-                ?.takeIf {
-                    !it.isJsonNull
-                }
+                ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
-                .orEmpty()
+                ?: ""
 
         val licenseKey =
             item.get("licUrl")
-                ?.takeIf {
-                    !it.isJsonNull
-                }
+                ?.takeIf { !it.isJsonNull }
                 ?.asString
                 ?.trim()
-                .orEmpty()
-
+                ?: ""
 
         /*
-         * ID DRM.
-         *
-         * Kita menggunakan CRC32 dari license key supaya
-         * setiap license memiliki ID yang konsisten.
+         * Buat DRM ID hanya kalau DRM aktif
+         * dan license key tersedia.
          */
         val drmId: String? =
             if (
                 drmEnabled &&
-                licenseKey.isNotBlank()
+                licenseKey.isNotEmpty()
             ) {
                 licenseKey.toCRC32()
             } else {
                 null
             }
 
-
         /*
          * ----------------------------------------------------
          * DRM LICENSE
          * ----------------------------------------------------
          */
-
         if (
             drmEnabled &&
             drmId != null &&
-            licenseKey.isNotBlank()
+            licenseKey.isNotEmpty()
         ) {
 
             val alreadyExists =
-                playlist.drmLicenses.any {
-                    it.id == drmId
+                playlist.drmLicenses.any { license ->
+
+                    license.id == drmId
                 }
 
             if (!alreadyExists) {
@@ -429,12 +350,8 @@ private fun parseStarVisionJson(
                 drmLicense.key =
                     licenseKey
 
-                /*
-                 * User-Agent dan Referer dimasukkan sebagai
-                 * header license jika tersedia.
-                 */
                 if (
-                    !userAgent.isNullOrBlank()
+                    !userAgent.isNullOrEmpty()
                 ) {
                     drmLicense.headers[
                         "User-Agent"
@@ -442,7 +359,7 @@ private fun parseStarVisionJson(
                 }
 
                 if (
-                    !referer.isNullOrBlank()
+                    !referer.isNullOrEmpty()
                 ) {
                     drmLicense.headers[
                         "Referer"
@@ -455,13 +372,11 @@ private fun parseStarVisionJson(
             }
         }
 
-
         /*
          * ----------------------------------------------------
-         * CHANNEL
+         * CHANNEL OBJECT
          * ----------------------------------------------------
          */
-
         val channel =
             Channel()
 
@@ -486,13 +401,11 @@ private fun parseStarVisionJson(
         channel.referer =
             referer
 
-
         /*
          * ----------------------------------------------------
-         * CATEGORY
+         * CATEGORY OBJECT
          * ----------------------------------------------------
          */
-
         val normalizedCategory =
             categoryName.normalize()
 
@@ -511,9 +424,8 @@ private fun parseStarVisionJson(
                 }
             }
 
-
         /*
-         * Pastikan list channel tersedia.
+         * Pastikan channels tidak null.
          */
         if (
             category.channels == null
@@ -522,33 +434,23 @@ private fun parseStarVisionJson(
                 ArrayList()
         }
 
-
         /*
          * Tambahkan channel.
-         *
-         * Kita tidak mengubah nama channel apabila duplikat.
-         * Dengan demikian nama di channels.json tetap sama.
          */
         category.channels?.add(
             channel
         )
     }
 
-
     /*
-     * ========================================================
-     * MASUKKAN CATEGORY KE PLAYLIST
-     * ========================================================
+     * --------------------------------------------------------
+     * ADD CATEGORIES
+     * --------------------------------------------------------
      */
-
     playlist.categories.addAll(
         categoryMap.values
     )
 
-
-    /*
-     * Jangan mengembalikan playlist kosong.
-     */
     if (
         playlist.categories.isEmpty()
     ) {
@@ -559,25 +461,26 @@ private fun parseStarVisionJson(
 }
 
 
-/*
- * ============================================================
- * MAIN PARSER
- * ============================================================
+/**
+ * Parser utama.
+ *
+ * Urutan:
+ *
+ * 1. StarVision-TV JSON
+ * 2. JSON Playlist lama
+ * 3. M3U
  */
-
 fun String?.toPlaylist(): Playlist? {
 
     if (this.isNullOrBlank()) {
         return null
     }
 
-
     /*
-     * --------------------------------------------------------
+     * ========================================================
      * 1. STARVISION-TV JSON
-     * --------------------------------------------------------
+     * ========================================================
      */
-
     try {
 
         val starVisionPlaylist =
@@ -595,13 +498,11 @@ fun String?.toPlaylist(): Playlist? {
         e.printStackTrace()
     }
 
-
     /*
-     * --------------------------------------------------------
-     * 2. FORMAT PLAYLIST JSON LAMA
-     * --------------------------------------------------------
+     * ========================================================
+     * 2. OLD PLAYLIST JSON
+     * ========================================================
      */
-
     try {
 
         val playlist =
@@ -626,13 +527,11 @@ fun String?.toPlaylist(): Playlist? {
         e.printStackTrace()
     }
 
-
     /*
-     * --------------------------------------------------------
+     * ========================================================
      * 3. M3U
-     * --------------------------------------------------------
+     * ========================================================
      */
-
     try {
 
         val m3uPlaylist =
@@ -650,26 +549,20 @@ fun String?.toPlaylist(): Playlist? {
         e.printStackTrace()
     }
 
-
     return null
 }
 
 
-/*
- * ============================================================
- * EMPTY CHECK
- * ============================================================
+/**
+ * Mengecek apakah Playlist kosong.
  */
-
 fun Playlist?.isCategoriesEmpty(): Boolean {
 
     if (this == null) {
         return true
     }
 
-    if (
-        this.categories.isEmpty()
-    ) {
+    if (this.categories.isEmpty()) {
         return true
     }
 
