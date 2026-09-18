@@ -463,7 +463,7 @@ class M3uTool {
                                     null
                             }
 
-                        drmId =
+                        this.drmId =
                             drmId
 
                         userAgent =
