@@ -7,6 +7,7 @@ import android.widget.LinearLayout
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import net.harimurti.tv.BR
 import net.harimurti.tv.R
 import net.harimurti.tv.databinding.ItemCategoryBinding
 import net.harimurti.tv.extension.*
@@ -15,86 +16,230 @@ import net.harimurti.tv.model.Category
 import net.harimurti.tv.model.Playlist
 import kotlin.math.round
 
-class CategoryAdapter (private val categories: ArrayList<Category>?) :
-    RecyclerView.Adapter<CategoryAdapter.ViewHolder>() {
+class CategoryAdapter(
+    private val categories: ArrayList<Category>?
+) : RecyclerView.Adapter<CategoryAdapter.ViewHolder>() {
+
     lateinit var context: Context
 
-    class ViewHolder(var itemCatBinding: ItemCategoryBinding) :
-        RecyclerView.ViewHolder(itemCatBinding.root) {
-        fun bind(obj: Category?) {
-          itemCatBinding.catModel = obj
-          itemCatBinding.executePendingBindings()
-        }
+    class ViewHolder(
+        var itemCatBinding: ItemCategoryBinding
+    ) : RecyclerView.ViewHolder(itemCatBinding.root) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        fun bind(obj: Any?) {
+            itemCatBinding.setVariable(
+                BR.catModel,
+                obj
+            )
+
+            itemCatBinding.executePendingBindings()
+        }
+    }
+
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): ViewHolder {
+
         context = parent.context
-        val binding: ItemCategoryBinding = DataBindingUtil.inflate(
-            LayoutInflater.from(context),R.layout.item_category,parent,false)
+
+        val binding: ItemCategoryBinding =
+            DataBindingUtil.inflate(
+                LayoutInflater.from(context),
+                R.layout.item_category,
+                parent,
+                false
+            )
+
         return ViewHolder(binding)
     }
 
-    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-        val category: Category? = categories?.get(position)
-        val chCount = category?.channels?.size ?: 0
-        val spanCount = when {
-            chCount > 30 -> chCount.toDouble().div(20).let { round(it).toInt() }
-            chCount > 20 -> 2
-            else -> 1
-        }
+    override fun onBindViewHolder(
+        viewHolder: ViewHolder,
+        position: Int
+    ) {
 
-        val isFav = category.isFavorite() && position == 0
-        viewHolder.itemCatBinding.chAdapter = ChannelAdapter(category?.channels, position, isFav)
-        viewHolder.itemCatBinding.rvChannels.layoutManager =
-                StaggeredGridLayoutManager(spanCount, StaggeredGridLayoutManager.HORIZONTAL)
+        val category: Category? =
+            categories?.getOrNull(position)
 
-        val dm = context.resources.displayMetrics
-        val dp = (dm.density + 0.5f).toInt()
-        val maxWidth = dm.widthPixels * dp
-        val marginEnd = 200 * dp
-        val wrapContent = LinearLayout.LayoutParams.WRAP_CONTENT
+        val chCount =
+            category?.channels?.size ?: 0
+
+        val spanCount =
+            when {
+
+                chCount > 30 ->
+                    chCount
+                        .toDouble()
+                        .div(20)
+                        .let {
+                            round(it).toInt()
+                        }
+
+                chCount > 20 ->
+                    2
+
+                else ->
+                    1
+            }
+
+
+        val isFav =
+            category?.isFavorite() == true &&
+                position == 0
+
+
+        viewHolder.itemCatBinding.chAdapter =
+            ChannelAdapter(
+                category?.channels,
+                position,
+                isFav
+            )
+
+
+        viewHolder.itemCatBinding
+            .rvChannels
+            .layoutManager =
+            StaggeredGridLayoutManager(
+                spanCount,
+                StaggeredGridLayoutManager.HORIZONTAL
+            )
+
+
+        val dm =
+            context.resources.displayMetrics
+
+        val dp =
+            (dm.density + 0.5f).toInt()
+
+        val maxWidth =
+            dm.widthPixels * dp
+
+        val marginEnd =
+            200 * dp
+
+        val wrapContent =
+            LinearLayout.LayoutParams.WRAP_CONTENT
+
+
         if (position == 0) {
-            viewHolder.itemCatBinding.textCategory.layoutParams =
-                LinearLayout.LayoutParams(wrapContent, wrapContent).apply {
-                    setMargins(0, 0, marginEnd, 0)
+
+            viewHolder.itemCatBinding
+                .textCategory
+                .layoutParams =
+                LinearLayout.LayoutParams(
+                    wrapContent,
+                    wrapContent
+                ).apply {
+
+                    setMargins(
+                        0,
+                        0,
+                        marginEnd,
+                        0
+                    )
                 }
+
+        } else {
+
+            viewHolder.itemCatBinding
+                .textCategory
+                .maxWidth =
+                maxWidth
         }
-        else {
-            viewHolder.itemCatBinding.textCategory.maxWidth = maxWidth
-        }
+
 
         viewHolder.bind(category)
     }
+
 
     override fun getItemCount(): Int {
         return categories?.size ?: 0
     }
 
+
     fun clear() {
-        val size = itemCount
+
+        val size =
+            itemCount
+
         categories?.clear()
-        notifyItemRangeRemoved(0, size)
+
+        if (size > 0) {
+
+            notifyItemRangeRemoved(
+                0,
+                size
+            )
+        }
     }
+
 
     fun insertOrUpdateFavorite() {
-        val fav = Playlist.favorites
-        if (Preferences().sortFavorite) fav.sort()
-        if (categories?.get(0)?.isFavorite() == false) {
-            val lastCount = itemCount
-            categories.addFavorite(fav.channels)
-            notifyItemInserted(0)
-            notifyItemRangeChanged(1, lastCount)
+
+        val fav =
+            Playlist.favorites
+
+        if (Preferences().sortFavorite) {
+            fav.sort()
         }
-        else {
-            categories?.get(0)?.channels = fav.channels
+
+
+        if (
+            categories?.isNotEmpty() == true &&
+            categories[0].isFavorite()
+        ) {
+
+            categories[0].channels =
+                fav.channels
+
             notifyItemChanged(0)
+
+            return
+        }
+
+
+        val lastCount =
+            itemCount
+
+        categories?.addFavorite(
+            fav.channels
+        )
+
+
+        if (itemCount > lastCount) {
+
+            notifyItemInserted(0)
+
+            if (lastCount > 0) {
+
+                notifyItemRangeChanged(
+                    1,
+                    lastCount
+                )
+            }
         }
     }
 
+
     fun removeFavorite() {
-        if (categories?.get(0)?.isFavorite() == true) {
+
+        if (
+            categories?.isNotEmpty() == true &&
+            categories[0].isFavorite()
+        ) {
+
             categories.removeAt(0)
+
             notifyItemRemoved(0)
-            notifyItemRangeChanged(0, itemCount)
+
+            if (itemCount > 0) {
+
+                notifyItemRangeChanged(
+                    0,
+                    itemCount
+                )
+            }
         }
     }
 }
