@@ -1,6 +1,6 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.plugin.parcelize'
+    id 'kotlin-parcelize'
 }
 
 def media3_version = '1.11.1'
@@ -41,6 +41,7 @@ android {
     buildFeatures {
         dataBinding = true
         viewBinding = true
+        buildConfig = true
     }
 
     buildTypes {
@@ -63,120 +64,48 @@ android {
 
 dependencies {
 
-    /*
-     * ==========================================================
-     * LOCAL JAR
-     * ==========================================================
-     */
-
     implementation fileTree(
             dir: 'libs',
-            include: ['*.jar']
+            include: ['*.jar', '*.aar']
     )
 
-
-    /*
-     * ==========================================================
-     * ANDROIDX
-     * ==========================================================
-     */
-
+    // AndroidX
     implementation 'androidx.appcompat:appcompat:1.7.1'
-
     implementation 'androidx.preference:preference-ktx:1.2.1'
-
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
-
-    /*
-     * ==========================================================
-     * MATERIAL
-     * ==========================================================
-     */
-
+    // Material
     implementation 'com.google.android.material:material:1.13.0'
 
-
-    /*
-     * ==========================================================
-     * NETWORK
-     * ==========================================================
-     */
-
+    // Network
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
 
-
-    /*
-     * ==========================================================
-     * MEDIA3
-     * ==========================================================
-     *
-     * Media3 1.11.1
-     */
-
+    // Media3
     implementation "androidx.media3:media3-exoplayer:${media3_version}"
-
     implementation "androidx.media3:media3-exoplayer-dash:${media3_version}"
-
+    implementation "androidx.media3:media3-exoplayer-hls:${media3_version}"
     implementation "androidx.media3:media3-exoplayer-rtsp:${media3_version}"
-
     implementation "androidx.media3:media3-ui:${media3_version}"
 
-
-    /*
-     * ==========================================================
-     * GOOGLE
-     * ==========================================================
-     */
-
+    // Google
     implementation 'com.google.android.gms:play-services-auth:19.2.0'
 
-
-    /*
-     * ==========================================================
-     * GSON
-     * ==========================================================
-     */
-
+    // Gson
     implementation 'com.google.code.gson:gson:2.13.1'
 
-
-    /*
-     * ==========================================================
-     * FILE PICKER
-     * ==========================================================
-     */
-
+    // File picker
     implementation 'com.github.TutorialsAndroid:FilePicker:v8.0.19'
 
-
-    /*
-     * ==========================================================
-     * SHIMMER
-     * ==========================================================
-     */
-
+    // Shimmer
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
 
-
-    /*
-     * ==========================================================
-     * VERTICAL SEEKBAR
-     * ==========================================================
-     */
-
+    // Vertical SeekBar
     implementation 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:1.0.0'
 
-
-    /*
-     * ==========================================================
-     * TEST
-     * ==========================================================
-     */
-
+    // Tests
     testImplementation 'junit:junit:4.13.2'
 
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
