@@ -7,7 +7,6 @@ import android.widget.LinearLayout
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import net.harimurti.tv.BR
 import net.harimurti.tv.R
 import net.harimurti.tv.databinding.ItemCategoryBinding
 import net.harimurti.tv.extension.*
@@ -22,11 +21,10 @@ class CategoryAdapter (private val categories: ArrayList<Category>?) :
 
     class ViewHolder(var itemCatBinding: ItemCategoryBinding) :
         RecyclerView.ViewHolder(itemCatBinding.root) {
-        fun bind(obj: Any?) {
-            itemCatBinding.setVariable(BR.catModel,obj)
-            itemCatBinding.executePendingBindings()
+        fun bind(obj: Category?) {
+          itemCatBinding.catModel = obj
+          itemCatBinding.executePendingBindings()
         }
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         context = parent.context
