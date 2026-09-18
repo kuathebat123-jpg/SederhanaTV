@@ -1,10 +1,12 @@
 package net.harimurti.tv.extra
 
 import androidx.media3.common.MimeTypes
+
 import net.harimurti.tv.extension.findPattern
 import net.harimurti.tv.extension.isStreamUrl
 import net.harimurti.tv.extension.normalize
 import net.harimurti.tv.extension.toCRC32
+
 import net.harimurti.tv.model.Category
 import net.harimurti.tv.model.Channel
 import net.harimurti.tv.model.ChannelRaw
@@ -17,54 +19,85 @@ class M3uTool {
         raw: String,
         target: HashMap<String, String>
     ) {
+
         raw
             .split("|", "&")
             .forEach { item ->
 
-                val separator = item.indexOf('=')
+                val separator =
+                    item.indexOf('=')
 
-                if (separator <= 0) return@forEach
+                if (separator <= 0) {
+                    return@forEach
+                }
 
-                val name = item
-                    .substring(0, separator)
-                    .trim()
+                val name =
+                    item
+                        .substring(
+                            0,
+                            separator
+                        )
+                        .trim()
 
-                val value = item
-                    .substring(separator + 1)
-                    .trim()
+                val value =
+                    item
+                        .substring(
+                            separator + 1
+                        )
+                        .trim()
 
                 if (
                     name.isNotEmpty() &&
                     value.isNotEmpty()
                 ) {
+
                     target[name] = value
                 }
             }
     }
 
-    fun parse(content: String?): Playlist {
+
+    fun parse(
+        content: String?
+    ): Playlist {
 
         val result = Playlist()
 
         var chRaw = ChannelRaw()
+
         var chReset = true
 
-        val lines = content
-            ?.lines()
-            ?: throw Exception("Empty Content")
+        val lines =
+            content
+                ?.lines()
+                ?: throw Exception(
+                    "Empty Content"
+                )
+
 
         lines.forEach { line ->
 
-            val currentLine = line.trim()
+            val currentLine =
+                line.trim()
+
 
             if (currentLine.isBlank()) {
                 return@forEach
             }
 
+
             /*
-             * VLC options
+             * ==========================================
+             * VLC OPTIONS
+             * ==========================================
              */
-            if (currentLine.startsWith("#EXTVLCOPT")) {
+
+            if (
+                currentLine.startsWith(
+                    "#EXTVLCOPT",
+                    ignoreCase = true
+                )
+            ) {
 
                 if (
                     currentLine.contains(
@@ -72,11 +105,13 @@ class M3uTool {
                         ignoreCase = true
                     )
                 ) {
+
                     chRaw.userAgent =
                         currentLine.findPattern(
                             ".*http-user-agent=(.+?)$"
                         )
                 }
+
 
                 if (
                     currentLine.contains(
@@ -84,37 +119,50 @@ class M3uTool {
                         ignoreCase = true
                     )
                 ) {
+
                     chRaw.referer =
                         currentLine.findPattern(
                             ".*http-referrer=(.+?)$"
                         )
                 }
 
+
                 chReset = false
+
                 return@forEach
             }
 
+
             /*
-             * Group
+             * ==========================================
+             * GROUP
+             * ==========================================
              */
+
             if (
                 currentLine.startsWith(
                     "#EXTGRP",
                     ignoreCase = true
                 )
             ) {
+
                 chRaw.group =
                     currentLine.findPattern(
                         ".*:(.+?)$"
                     )
 
                 chReset = false
+
                 return@forEach
             }
 
+
             /*
-             * Kodi properties.
+             * ==========================================
+             * KODIPROP
+             * ==========================================
              */
+
             if (
                 currentLine.startsWith(
                     "#KODIPROP",
@@ -131,14 +179,17 @@ class M3uTool {
                 val lowerProp =
                     prop.lowercase()
 
+
                 /*
-                 * DRM type
+                 * DRM TYPE
                  */
+
                 if (
                     lowerProp.contains(
                         "license_type"
                     )
                 ) {
+
                     chRaw.drmType =
                         Regex(
                             "(?i)license_type=(.*)"
@@ -149,9 +200,11 @@ class M3uTool {
                             ?.trim()
                 }
 
+
                 /*
-                 * License key / license URL
+                 * LICENSE KEY
                  */
+
                 if (
                     lowerProp.contains(
                         "license_key"
@@ -168,30 +221,21 @@ class M3uTool {
                             ?.trim()
                             .orEmpty()
 
-                    if (licenseValue.isNotBlank()) {
+
+                    if (
+                        licenseValue.isNotBlank()
+                    ) {
 
                         val parts =
                             licenseValue.split("|")
 
-                        /*
-                         * Bagian pertama adalah:
-                         *
-                         * license URL
-                         *
-                         * atau:
-                         *
-                         * kid:key
-                         */
-                        chRaw.drmKey =
-                            parts.first().trim()
 
-                        /*
-                         * Sisanya dianggap HTTP headers.
-                         *
-                         * Contoh:
-                         *
-                         * |Authorization=Bearer TOKEN
-                         */
+                        chRaw.drmKey =
+                            parts
+                                .first()
+                                .trim()
+
+
                         if (parts.size > 1) {
 
                             parseHeaderList(
@@ -204,9 +248,11 @@ class M3uTool {
                     }
                 }
 
+
                 /*
-                 * DASH / HLS manifest type.
+                 * MANIFEST TYPE
                  */
+
                 if (
                     lowerProp.contains(
                         "manifest_type"
@@ -223,13 +269,19 @@ class M3uTool {
                             ?.trim()
                 }
 
+
                 chReset = false
+
                 return@forEach
             }
 
+
             /*
+             * ==========================================
              * EXTINF
+             * ==========================================
              */
+
             if (
                 currentLine.startsWith(
                     "#EXTINF",
@@ -241,43 +293,67 @@ class M3uTool {
                     chReset &&
                     !chRaw.name.isNullOrBlank()
                 ) {
-                    chRaw = ChannelRaw()
+
+                    chRaw =
+                        ChannelRaw()
                 }
+
 
                 chRaw.name =
                     currentLine.findPattern(
                         ".*,(.+?)$"
                     )
 
+
                 chRaw.group =
                     currentLine.findPattern(
                         ".*group-title=\"(.*?)\".*"
-                    ) ?: chRaw.group
+                    )
+                        ?: chRaw.group
+
 
                 chRaw.logoUrl =
                     currentLine.findPattern(
                         ".*tvg-logo=\"(.*?)\".*"
                     )
 
-                if (chRaw.name.isNullOrBlank()) {
-                    chRaw.name = "NO NAME"
+
+                if (
+                    chRaw.name.isNullOrBlank()
+                ) {
+
+                    chRaw.name =
+                        "NO NAME"
                 }
 
-                if (chRaw.group.isNullOrBlank()) {
-                    chRaw.group = "UNCATEGORIZED"
+
+                if (
+                    chRaw.group.isNullOrBlank()
+                ) {
+
+                    chRaw.group =
+                        "UNCATEGORIZED"
                 }
+
 
                 chReset = true
 
                 return@forEach
             }
 
+
             /*
-             * Stream URL.
+             * ==========================================
+             * STREAM URL
+             * ==========================================
              */
-            if (currentLine.isStreamUrl()) {
+
+            if (
+                currentLine.isStreamUrl()
+            ) {
 
                 chReset = true
+
 
                 chRaw.streamUrl =
                     currentLine
@@ -287,14 +363,17 @@ class M3uTool {
                         ?.trim()
                         ?: currentLine
 
+
                 /*
-                 * Stream URL headers.
+                 * URL HEADERS
                  */
+
                 chRaw.userAgent =
                     chRaw.userAgent
                         ?: currentLine.findPattern(
                             ".*\\|user-agent=(.+?)(\\|.*)?"
                         )
+
 
                 chRaw.referer =
                     chRaw.referer
@@ -302,20 +381,25 @@ class M3uTool {
                             ".*\\|referer=(.+?)(\\|.*)?"
                         )
 
+
                 /*
-                 * Create DRM ID.
+                 * DRM ID
                  */
+
                 val drmId =
                     chRaw.drmKey
                         ?.toCRC32()
 
+
                 /*
-                 * Register DRM license.
+                 * REGISTER DRM
                  */
+
                 val drmExists =
                     result.drmLicenses.any {
                         it.id == drmId
                     }
+
 
                 if (
                     drmId != null &&
@@ -329,10 +413,12 @@ class M3uTool {
                             id = drmId
 
                             key =
-                                chRaw.drmKey.orEmpty()
+                                chRaw.drmKey
+                                    .orEmpty()
 
                             type =
-                                chRaw.drmType.orEmpty()
+                                chRaw.drmType
+                                    .orEmpty()
 
                             headers =
                                 HashMap(
@@ -342,9 +428,11 @@ class M3uTool {
                     )
                 }
 
+
                 /*
-                 * Channel.
+                 * CHANNEL
                  */
+
                 val channel =
                     Channel().apply {
 
@@ -385,17 +473,22 @@ class M3uTool {
                             chRaw.referer
                     }
 
+
                 /*
-                 * Category.
+                 * CATEGORY
                  */
+
                 val categoryName =
                     chRaw.group.normalize()
+
 
                 val category =
                     result.categories
                         .firstOrNull {
-                            it.name == categoryName
+                            it.name ==
+                                    categoryName
                         }
+
 
                 if (category == null) {
 
@@ -417,23 +510,29 @@ class M3uTool {
                     val duplicate =
                         category.channels
                             ?.count {
+
                                 it.name
-                                    ?.substringBefore(" #")
-                                    == chRaw.name
+                                    ?.substringBefore(
+                                        " #"
+                                    ) ==
+                                        chRaw.name
                             }
                             ?: 0
 
+
                     if (duplicate > 0) {
+
                         channel.name =
                             "${chRaw.name} #$duplicate"
                     }
 
-                    category.channels?.add(
-                        channel
-                    )
+
+                    category.channels
+                        ?.add(channel)
                 }
             }
         }
+
 
         return result
     }
