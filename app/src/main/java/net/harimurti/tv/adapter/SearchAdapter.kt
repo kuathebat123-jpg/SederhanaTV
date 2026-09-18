@@ -12,16 +12,16 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
-import net.harimurti.tv.BR
 import net.harimurti.tv.MainActivity
 import net.harimurti.tv.PlayerActivity
 import net.harimurti.tv.R
 import net.harimurti.tv.databinding.ItemChannelBinding
+import net.harimurti.tv.extension.insert
+import net.harimurti.tv.extension.save
 import net.harimurti.tv.extension.startAnimation
 import net.harimurti.tv.model.Channel
 import net.harimurti.tv.model.PlayData
 import net.harimurti.tv.model.Playlist
-
 
 class SearchAdapter(
     private val channels: ArrayList<Channel>,
@@ -38,24 +38,20 @@ class SearchAdapter(
     var listPlayData =
         ArrayList<PlayData>()
 
-
     class ViewHolder(
         var itemChBinding: ItemChannelBinding
     ) : RecyclerView.ViewHolder(
         itemChBinding.root
     ) {
 
-        fun bind(obj: Any?) {
+        fun bind(obj: Channel?) {
 
-            itemChBinding.setVariable(
-                BR.modelChannel,
+            itemChBinding.modelChannel =
                 obj
-            )
 
             itemChBinding.executePendingBindings()
         }
     }
-
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -76,18 +72,23 @@ class SearchAdapter(
         return ViewHolder(binding)
     }
 
-
     override fun onBindViewHolder(
         viewHolder: ViewHolder,
         position: Int
     ) {
 
         val channel =
-            listChannel[position]
+            listChannel.getOrNull(position)
 
         val playdata =
-            listPlayData[position]
+            listPlayData.getOrNull(position)
 
+        if (
+            channel == null ||
+            playdata == null
+        ) {
+            return
+        }
 
         viewHolder.bind(channel)
 
@@ -101,11 +102,9 @@ class SearchAdapter(
             this
     }
 
-
     override fun getItemCount(): Int {
         return listChannel.size
     }
-
 
     override fun getFilter(): Filter {
 
@@ -120,7 +119,6 @@ class SearchAdapter(
                         ?.toString()
                         ?.trim()
                         ?: ""
-
 
                 if (query.isEmpty()) {
 
@@ -138,7 +136,6 @@ class SearchAdapter(
                     val filteredPlayData =
                         ArrayList<PlayData>()
 
-
                     for (id in channels.indices) {
 
                         if (
@@ -154,12 +151,16 @@ class SearchAdapter(
                                 channels[id]
                             )
 
-                            filteredPlayData.add(
-                                listdata[id]
-                            )
+                            if (
+                                id < listdata.size
+                            ) {
+
+                                filteredPlayData.add(
+                                    listdata[id]
+                                )
+                            }
                         }
                     }
-
 
                     listChannel =
                         filteredChannels
@@ -167,7 +168,6 @@ class SearchAdapter(
                     listPlayData =
                         filteredPlayData
                 }
-
 
                 return FilterResults().apply {
 
@@ -178,7 +178,6 @@ class SearchAdapter(
                         listChannel.size
                 }
             }
-
 
             @SuppressLint(
                 "NotifyDataSetChanged"
@@ -204,7 +203,6 @@ class SearchAdapter(
                         ArrayList()
                     }
 
-
                 if (
                     listPlayData.size !=
                     listChannel.size
@@ -212,7 +210,6 @@ class SearchAdapter(
 
                     listPlayData =
                         ArrayList()
-
 
                     for (channel in listChannel) {
 
@@ -233,12 +230,10 @@ class SearchAdapter(
                     }
                 }
 
-
                 notifyDataSetChanged()
             }
         }
     }
-
 
     override fun onClicked(
         ch: Channel,
@@ -263,7 +258,6 @@ class SearchAdapter(
         context.startActivity(intent)
     }
 
-
     override fun onLongClicked(
         ch: Channel,
         catId: Int,
@@ -275,7 +269,6 @@ class SearchAdapter(
 
         val result =
             fav.insert(ch)
-
 
         if (result) {
 
@@ -292,7 +285,6 @@ class SearchAdapter(
 
             fav.save()
         }
-
 
         val message =
             if (result) {
@@ -314,7 +306,6 @@ class SearchAdapter(
                 )
             }
 
-
         Toast.makeText(
             context,
             message,
@@ -323,7 +314,6 @@ class SearchAdapter(
 
         return true
     }
-
 
     override fun onFocusChanged(
         v: View,
