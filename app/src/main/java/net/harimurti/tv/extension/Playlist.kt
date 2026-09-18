@@ -417,10 +417,10 @@ private fun parseStarVisionJson(
 
                 Category().apply {
 
-                    name =
+                    this.name =
                         normalizedCategory
 
-                    channels =
+                    this.channels =
                         ArrayList()
                 }
             }
