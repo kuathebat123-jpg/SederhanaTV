@@ -52,6 +52,7 @@
     <!-- alert playlist error -->
     <string name="playlist_updated">Playlist sudah diperbaharui!</string>
     <string name="dialog_retry">Coba lagi</string>
+    <string name="error_dir_access">Tidak bisa mengakses folder ini</string>
     <string name="dialog_cached">Gunakan cache</string>
     <string name="player_playback_error">Kesalahan Pemutaran</string>
     <string name="player_no_playlist">Kita punya masalah dgn playlist</string>
