@@ -408,16 +408,16 @@ private fun parseStarVisionJson(
          */
         val normalizedCategory =
             categoryName.normalize()
+                ?: categoryName
 
         val category =
             categoryMap.getOrPut(
                 normalizedCategory
             ) {
 
-                Category().apply {
-
-                    name =
-                        normalizedCategory
+                Category(
+                    name = normalizedCategory
+                ).apply {
 
                     channels =
                         ArrayList()
