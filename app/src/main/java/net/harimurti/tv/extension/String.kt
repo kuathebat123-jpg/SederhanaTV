@@ -65,8 +65,30 @@ fun String.toRequestBuilder(): Request.Builder {
         .url(this)
 }
 
+/**
+ * Decodes only values that are not signed HTTP URLs.
+ * URLDecoder is form-decoding and converts '+' to a space, which corrupts
+ * CloudFront signatures and other signed query parameters.
+ */
 fun String.decodeUrl(): String {
-    return URLDecoder.decode(this, "UTF-8")
+    val uri = runCatching { java.net.URI(this) }.getOrNull()
+    val query = uri?.rawQuery.orEmpty().lowercase()
+    val signedParameter = listOf(
+        "signature=",
+        "expires=",
+        "policy=",
+        "key-pair-id=",
+        "x-amz-signature=",
+        "x-amz-expires=",
+        "x-amz-credential=",
+        "hdnts="
+    ).any { query.contains(it) }
+
+    return if (uri?.scheme != null && signedParameter) {
+        this
+    } else {
+        URLDecoder.decode(this, "UTF-8")
+    }
 }
 
 fun String.decodeHex(): ByteArray {
@@ -75,28 +97,14 @@ fun String.decodeHex(): ByteArray {
         .toByteArray()
 }
 
-/**
- * Convert:
- *
- * kid:key
- *
- * atau:
- *
- * kid:key|kid2:key2
- *
- * menjadi ClearKey JSON Web Key Set.
- */
 fun String.toClearKey(): ByteArray {
-
     val raw = trim()
 
-    // Sudah berupa JWK JSON.
     if (raw.startsWith("{")) {
         return raw.toByteArray(Charsets.UTF_8)
     }
 
     fun normalizePart(value: String): String {
-
         val part = value.trim()
 
         return if (
@@ -112,38 +120,23 @@ fun String.toClearKey(): ByteArray {
     val keys = raw
         .split("|", ";", ",")
         .mapNotNull { pair ->
-
             val separator = pair.indexOf(':')
+            if (separator <= 0) return@mapNotNull null
 
-            if (separator <= 0) {
-                return@mapNotNull null
-            }
+            val kid = normalizePart(pair.substring(0, separator))
+            val key = normalizePart(pair.substring(separator + 1))
 
-            val kid = normalizePart(
-                pair.substring(0, separator)
-            )
-
-            val key = normalizePart(
-                pair.substring(separator + 1)
-            )
-
-            if (kid.isBlank() || key.isBlank()) {
-                null
-            } else {
-                """
+            if (kid.isBlank() || key.isBlank()) null else """
                 {
                     "kty":"oct",
                     "k":"$key",
                     "kid":"$kid"
                 }
                 """.trimIndent()
-            }
         }
 
     if (keys.isEmpty()) {
-        throw IllegalArgumentException(
-            "Invalid ClearKey value"
-        )
+        throw IllegalArgumentException("Invalid ClearKey value")
     }
 
     return """
@@ -155,40 +148,21 @@ fun String.toClearKey(): ByteArray {
 }
 
 fun String.toCRC32(): String {
-
     val bytes = toByteArray()
 
     return CRC32()
-        .apply {
-            update(bytes)
-        }
+        .apply { update(bytes) }
         .value
         .toString()
 }
 
 fun String.toUUID(): UUID {
-
     val normalized = lowercase().trim()
 
     return when {
-
-        normalized.contains("widevine") ||
-                normalized == "com.widevine.alpha" -> {
-            C.WIDEVINE_UUID
-        }
-
-        normalized.contains("clearkey") ||
-                normalized == "org.w3.clearkey" -> {
-            C.CLEARKEY_UUID
-        }
-
-        normalized.contains("playready") ||
-                normalized == "com.microsoft.playready" -> {
-            C.PLAYREADY_UUID
-        }
-
-        else -> {
-            C.UUID_NIL
-        }
+        normalized.contains("widevine") || normalized == "com.widevine.alpha" -> C.WIDEVINE_UUID
+        normalized.contains("clearkey") || normalized == "org.w3.clearkey" -> C.CLEARKEY_UUID
+        normalized.contains("playready") || normalized == "com.microsoft.playready" -> C.PLAYREADY_UUID
+        else -> C.UUID_NIL
     }
 }
