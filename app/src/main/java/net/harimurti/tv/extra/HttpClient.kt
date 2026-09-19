@@ -12,7 +12,6 @@ class HttpClient(private val useCache: Boolean) {
             .followRedirects(true)
             .followSslRedirects(true)
             .retryOnConnectionFailure(true)
-            .sslSocketFactory(App.sslSocketFactory, HttpsTrustManager())
 
         if (useCache) client.cache(Cache(cacheFile, cacheSize))
         return client.build().newCall(request)
